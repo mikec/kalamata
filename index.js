@@ -1,8 +1,8 @@
-/* exported lf */
+/* exported kalamata */
 var bodyParser = require('body-parser');
 var app, options;
 
-var lf = module.exports = function(_app_, _options_) {
+var kalamata = module.exports = function(_app_, _options_) {
     app = _app_;
     options = _options_;
 
@@ -12,10 +12,10 @@ var lf = module.exports = function(_app_, _options_) {
     if(!options.apiRoot) options.apiRoot = '';
     options.apiRoot = '/' + options.apiRoot.replace(/^\/|\/$/g, '') + '/';
 
-    return lf;
+    return kalamata;
 };
 
-lf.endpoint = function(model, _opts_) {
+kalamata.endpoint = function(model, _opts_) {
 
     var validOpts = {
         identifier: true,
