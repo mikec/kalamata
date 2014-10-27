@@ -1,0 +1,23 @@
+{
+  "name": "kalamata",
+  "version": "0.1.0",
+  "description": "Extensible REST API for Express + Bookshelf.js",
+  "homepage": "https://github.com/mikec/kalamata",
+  "bugs": "https://github.com/mikec/kalamata/issues",
+  "author": "Mike Calvanese",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/mikec/kalamata.git"
+  },
+  "keywords": [
+    "bookshelf",
+    "knex",
+    "node",
+    "express",
+    "REST",
+    "API"
+  ],
+  "dependencies": {
+    "body-parser": "^1.9.0"
+  }
+}
