@@ -17,6 +17,10 @@
     "REST",
     "API"
   ],
+  "peerDependencies": {
+    "express": "^4.10.0",
+    "bookshelf": "^0.7.7"
+  },
   "devDependencies": {
     "grunt": "0.4.5",
     "load-grunt-tasks": "0.6.0",
