@@ -78,7 +78,7 @@ kalamata.expose = function(model, _opts_) {
                 if(!m) {
                     throw new Error(
                         'Error getting ' + opts.endpointName + '. ' +
-                        options.identifier + ' = ' + req.params.identifier +
+                        opts.identifier + ' = ' + req.params.identifier +
                         ' not found'
                     );
                 }
