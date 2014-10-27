@@ -9,6 +9,13 @@ module.exports = function(grunt) {
 
             },
             all: ['test/']
+        },
+
+        watch: {
+            js: {
+                files: ['index.js', 'test/*.js'],
+                tasks: 'test'
+            }
         }
 
     });
