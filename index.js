@@ -1,4 +1,3 @@
-/* exported kalamata */
 var bodyParser = require('body-parser');
 var app, options;
 
