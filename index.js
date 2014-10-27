@@ -15,7 +15,7 @@ var kalamata = module.exports = function(_app_, _options_) {
     return kalamata;
 };
 
-kalamata.endpoint = function(model, _opts_) {
+kalamata.expose = function(model, _opts_) {
 
     var validOpts = {
         identifier: true,
