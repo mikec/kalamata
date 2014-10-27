@@ -47,10 +47,26 @@ kalamata.expose = function(model, _opts_) {
     configureEndpoints();
 
     function configureEndpoints() {
+
         app.get(options.apiRoot + opts.endpointName, function(req, res) {
             var err = runHooks(hooks.before.getCollection, [req, res], res);
             if(err) return;
-            new model().fetchAll().then(function(collection) {
+            var promise;
+            if(req.query.where) {
+                var w;
+                try {
+                    w = parseJSON(req.query.where);
+                } catch(err) {
+                    console.log(err.stack);
+                    res.send('Error parsing JSON. \'' +
+                                req.query.where + '\' is not valid JSON');
+                    return;
+                }
+                promise = new model().where(w).fetchAll();
+            } else {
+                promise = new model().fetchAll();
+            }
+            promise.then(function(collection) {
                 var err = runHooks(
                             hooks.after.getCollection,
                             [collection, req, res],
@@ -215,6 +231,14 @@ kalamata.expose = function(model, _opts_) {
                 return chainer;
             };
         }
+    }
+
+    function parseJSON(str) {
+        return JSON.parse(fixJSONString(str));
+    }
+
+    function fixJSONString(str) {
+        return str.replace(/(['"])?([a-zA-Z0-9_]+)(['"])?:/g, '"$2": ');
     }
 
     return chainer;
