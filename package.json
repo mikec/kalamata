@@ -17,6 +17,11 @@
     "REST",
     "API"
   ],
+  "devDependencies": {
+    "grunt": "0.4.5",
+    "load-grunt-tasks": "0.6.0",
+    "grunt-jasmine-node": "0.2.1"
+  },
   "dependencies": {
     "body-parser": "^1.9.0"
   }
