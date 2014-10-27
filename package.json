@@ -25,7 +25,7 @@
     "grunt": "0.4.5",
     "load-grunt-tasks": "0.6.0",
     "grunt-contrib-watch": "0.6.1",
-    "grunt-jasmine-node": "0.2.1"
+    "grunt-jasmine-node": "git://github.com/fiznool/grunt-jasmine-node.git#c773421b608ce944454cb540a6e66575d2df09c6"
   },
   "dependencies": {
     "body-parser": "^1.9.0"

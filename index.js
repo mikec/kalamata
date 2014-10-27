@@ -8,8 +8,8 @@ var kalamata = module.exports = function(_app_, _options_) {
     app.use(bodyParser.json());
 
     if(!options) options = {};
-    if(!options.apiRoot) options.apiRoot = '';
-    options.apiRoot = '/' + options.apiRoot.replace(/^\/|\/$/g, '') + '/';
+    if(!options.apiRoot) options.apiRoot = '/';
+    else options.apiRoot = '/' + options.apiRoot.replace(/^\/|\/$/g, '') + '/';
 
     return kalamata;
 };
