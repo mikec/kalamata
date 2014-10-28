@@ -8,12 +8,7 @@ describe('initialization', function() {
         delete: function() {}
     };
 
-    var modelMock = function() {}
-    modelMock.forge = function() {
-        return {
-            tableName: 'items'
-        };
-    };
+    var modelMock = helpers.getModelMock('items');
 
     var k;
 
