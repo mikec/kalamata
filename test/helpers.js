@@ -1,5 +1,7 @@
 (function() {
 
+    console.log = function() { };
+
     global.MockApp = function() {
 
         function appMock() {
@@ -40,13 +42,15 @@
         };
 
         m.prototype.fetchAll = modelMocks.fetchAll || function() {};
+        m.prototype.where = modelMocks.where || function() {};
 
         return m;
     };
 
-    global.MockRequest = function() {
-        this.query = {};
-        this.params = {};
+    global.MockRequest = function(reqMocks) {
+        if(!reqMocks) reqMocks = {};
+        this.query = reqMocks.query || {};
+        this.params = reqMocks.params || {};
     };
 
     global.MockResponse = function() {
