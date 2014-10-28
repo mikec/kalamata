@@ -112,33 +112,26 @@ describe('GET request for collection', function() {
 
         it('should call the before hook with the correct arguments',
         function() {
-            expect(hooks.before.calls.argsFor(0)[0]).toEqual(mockRequest);
-            expect(hooks.before.calls.argsFor(0)[1]).toEqual(mockResponse);
+            expect(hooks.before.calls.argsFor(0))
+                .toEqual([mockRequest, mockResponse]);
         });
 
         it('should call the after hook with the correct arguments',
         function() {
-            expect(hooks.after.calls.argsFor(0)[0]).toEqual('foo');
-            expect(hooks.after.calls.argsFor(0)[1]).toEqual(mockRequest);
-            expect(hooks.after.calls.argsFor(0)[2]).toEqual(mockResponse);
+            expect(hooks.after.calls.argsFor(0))
+                .toEqual(['foo', mockRequest, mockResponse]);
         });
 
-        it('should call the before hook with the correct arguments',
+        it('should call the beforeGetCollection hook with the correct arguments',
         function() {
-            expect(hooks.beforeGetCollection.calls.argsFor(0)[0])
-                    .toEqual(mockRequest);
-            expect(hooks.beforeGetCollection.calls.argsFor(0)[1])
-                    .toEqual(mockResponse);
+            expect(hooks.beforeGetCollection.calls.argsFor(0))
+                    .toEqual([mockRequest, mockResponse]);
         });
 
-        it('should call the after hook with the correct arguments',
+        it('should call the afterGetCollection hook with the correct arguments',
         function() {
-            expect(hooks.afterGetCollection.calls.argsFor(0)[0])
-                    .toEqual('foo');
-            expect(hooks.afterGetCollection.calls.argsFor(0)[1])
-                    .toEqual(mockRequest);
-            expect(hooks.afterGetCollection.calls.argsFor(0)[2])
-                    .toEqual(mockResponse);
+            expect(hooks.afterGetCollection.calls.argsFor(0))
+                    .toEqual(['foo', mockRequest, mockResponse]);
         });
 
     });
