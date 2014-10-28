@@ -72,4 +72,25 @@
 
     }
 
+    global.MockHooks = function(hookTypes) {
+        this.hookTypes = hookTypes;
+        for(var i in hookTypes) {
+            this[hookTypes[i]] = function() {};
+        }
+    };
+
+    MockHooks.prototype.spyOnAll = function() {
+        for(var i in this.hookTypes) {
+            spyOn(this, this.hookTypes[i]);
+        }
+    }
+
+    MockHooks.prototype.setOn = function(chainer) {
+        var nxtChainer = chainer;
+        for(var i in this.hookTypes) {
+            var nxt = nxtChainer[this.hookTypes[i]](this[this.hookTypes[i]]);
+            nxtChainer = nxt;
+        }
+    }
+
 })();
