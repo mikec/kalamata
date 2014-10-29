@@ -12,6 +12,7 @@ global.MockModel = function(tableName, modelMocks) {
     m.prototype.fetchAll = modelMocks.fetchAll || function() {};
     m.prototype.fetch = modelMocks.fetch || function() {};
     m.prototype.where = modelMocks.where || function() {};
+    m.prototype.save = modelMocks.save || function() {};
 
     return m;
 };

@@ -21,3 +21,16 @@ MockPromise.prototype.catch = function(fn) {
         fn(this.thrownError);
     }
 }
+
+global.MockFailPromise = function(error) {
+    this.error = error || new Error('promise failed');
+};
+
+MockFailPromise.prototype.then = function() {
+    var err = this.error;
+    return {
+        catch: function(fn) {
+            fn(err);
+        }
+    };
+}
