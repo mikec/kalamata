@@ -169,7 +169,7 @@ kalamata.expose = function(model, _opts_) {
                 if(!m) {
                     throw new Error(
                         'Error deleting ' + opts.endpointName + '. ' +
-                        options.identifier + ' = ' + req.params.identifier +
+                        opts.identifier + ' = ' + req.params.identifier +
                         ' not found'
                     );
                 }
@@ -181,7 +181,7 @@ kalamata.expose = function(model, _opts_) {
                 res.send(true);
             }).catch(function(error) {
                 console.log(error.stack);
-                res.send('Error getting ' + opts.endpointName);
+                res.send('Error deleting ' + opts.endpointName);
             });
         });
     }
