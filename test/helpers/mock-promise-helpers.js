@@ -6,12 +6,15 @@ global.MockPromise = function(args, nextPromise) {
 
 MockPromise.prototype.then = function(fn) {
     if(!this.nextPromise) this.nextPromise = new MockPromise();
-    if(fn) {
+    if(!this.thrownError && fn) {
         try {
             fn.apply(null, this.args);
         } catch(thrownError) {
+            this.thrownError = thrownError;
             this.nextPromise.thrownError = thrownError;
         }
+    } else if(this.thrownError) {
+        this.nextPromise.thrownError = this.thrownError;
     }
     return this.nextPromise;
 };

@@ -3,7 +3,12 @@ global.MockModel = function(tableName, modelMocks) {
 
     if(!modelMocks) modelMocks = {};
 
-    var m = function() {};
+    var m = function(attributes) {
+        m.modelInstances.push(this);
+        this.attributes = attributes;
+    };
+
+    m.modelInstances = [];
 
     m.forge = function() {
         return { tableName: tableName };
