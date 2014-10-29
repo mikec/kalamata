@@ -91,22 +91,28 @@ describe('GET request for collection', function() {
 
     describe('with hooks setup', function() {
 
-        var hooks = {};
+        var hooks;
 
         beforeEach(function() {
             fetchAllCalled = false;
             var mockModel = getMockModel('foo');
-            hooks = new MockHooks([
-                'before',
-                'after',
-                'beforeGetCollection',
-                'afterGetCollection'
-            ]);
-            hooks.spyOnAll();
-            hooks.setOn(k.expose(mockModel));
+            hooks = {
+                before: function() { },
+                after: function() { },
+                beforeGetCollection: function() { },
+                afterGetCollection: function() { }
+            };
+            spyOn(hooks, 'before');
+            spyOn(hooks, 'after');
+            spyOn(hooks, 'beforeGetCollection');
+            spyOn(hooks, 'afterGetCollection');
+            k.expose(mockModel)
+                .before(hooks.before)
+                .after(hooks.after)
+                .beforeGetCollection(hooks.beforeGetCollection)
+                .afterGetCollection(hooks.afterGetCollection);
             mockResponse = new MockResponse();
             mockRequest = new MockRequest();
-            spyOn(mockResponse, 'send');
             mockApp.getHandlers['/items'](mockRequest, mockResponse);
         });
 
@@ -134,7 +140,49 @@ describe('GET request for collection', function() {
                     .toEqual(['foo', mockRequest, mockResponse]);
         });
 
+        it('should call fetchAll', function() {
+            expect(fetchAllCalled).toBeTruthy();
+        });
+
     });
+
+    describeTestsForHookError('before');
+    describeTestsForHookError('after');
+    describeTestsForHookError('beforeGetCollection');
+    describeTestsForHookError('afterGetCollection');
+
+    function describeTestsForHookError(hookType) {
+
+        describe('and the \'' + hookType + '\' hook throws an error', function() {
+
+            var hooks;
+
+            beforeEach(function() {
+                fetchAllCalled = false;
+                var mockModel = getMockModel('foo');
+                k.expose(mockModel)[hookType](function() {
+                    throw new Error('hook error');
+                });
+                mockResponse = new MockResponse();
+                mockRequest = new MockRequest();
+                spyOn(mockResponse, 'send');
+                mockApp.getHandlers['/items'](mockRequest, mockResponse);
+            });
+
+            it('should respond with an error', function() {
+                expect(mockResponse.send.calls.argsFor(0)[0])
+                    .toEqual('Error getting items');
+            });
+
+            if(hookType.indexOf('before') !== -1) {
+                it('should not call fetchAll', function() {
+                    expect(fetchAllCalled).toBeFalsy();
+                });
+            }
+
+        });
+
+    }
 
     function getMockModel(collectionVal) {
         var promiseArgs = [];
