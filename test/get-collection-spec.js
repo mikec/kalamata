@@ -104,21 +104,17 @@ describe('GET request for collection', function() {
 
     describeTestsForHooks('get', '/items', [
         {
-            hookType: 'before',
-            handlerType: 'get'
+            hookType: 'before'
         },
         {
             hookType: 'after',
-            handlerType: 'get',
             expect: [[{ name: 'mock' },{ name: 'mock' }]]
         },
         {
-            hookType: 'beforeGetCollection',
-            handlerType: 'get'
+            hookType: 'beforeGetCollection'
         },
         {
             hookType: 'afterGetCollection',
-            handlerType: 'get',
             expect: [[{ name: 'mock' },{ name: 'mock' }]]
         }
     ]);

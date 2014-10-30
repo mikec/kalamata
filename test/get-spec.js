@@ -69,22 +69,18 @@ describe('GET request for single item', function() {
     describeTestsForHooks('get', '/items/:identifier', [
         {
             hookType: 'before',
-            handlerType: 'get',
             expect: ['1']
         },
         {
             hookType: 'after',
-            handlerType: 'get',
             expect: [{ name: 'mock' }]
         },
         {
             hookType: 'beforeGet',
-            handlerType: 'get',
             expect: ['1']
         },
         {
             hookType: 'afterGet',
-            handlerType: 'get',
             expect: [{ name: 'mock' }]
         }
     ]);

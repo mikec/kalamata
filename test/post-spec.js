@@ -57,22 +57,18 @@ describe('POST request to create a new item', function() {
     describeTestsForHooks('post', '/items', [
         {
             hookType: 'before',
-            handlerType: 'post',
             expect: [{ data: 'mock' }]
         },
         {
             hookType: 'after',
-            handlerType: 'post',
             expect: [{ name: 'mock' }]
         },
         {
             hookType: 'beforeCreate',
-            handlerType: 'post',
             expect: [{ data: 'mock' }]
         },
         {
             hookType: 'afterCreate',
-            handlerType: 'post',
             expect: [{ name: 'mock' }]
         }
     ]);
