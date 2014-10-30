@@ -1,10 +1,10 @@
 describe('GET request for single item', function() {
 
-    var mockApp, mockResponse, mockRequest, k;
+    var mockResponse, mockRequest;
 
     beforeEach(function() {
-        mockApp = new MockApp();
-        k = require('../index')(mockApp);
+        this.mockApp = new MockApp();
+        this.k = require('../index')(this.mockApp);
     });
 
     describe('with an identifier for an item that exists', function() {
@@ -17,11 +17,15 @@ describe('GET request for single item', function() {
                     return new MockPromise([mockFetchedModel]);
                 }
             });
-            k.expose(mockModel);
+            this.k.expose(mockModel);
             mockResponse = new MockResponse();
             spyOn(mockResponse, 'send');
-            var fn = mockApp.getHandlers['/items/:identifier']
+            var fn = this.mockApp.getHandlers['/items/:identifier']
             fn(new MockRequest(), mockResponse);
+        });
+
+        it('should instantiate a model instance', function() {
+            expect(mockModel.modelInstances.length).toEqual(1);
         });
 
         it('should respond with the fetched model', function() {
@@ -46,10 +50,10 @@ describe('GET request for single item', function() {
             mockRequest = new MockRequest({
                 params: { identifier: '1' }
             });
-            k.expose(mockModel);
+            this.k.expose(mockModel);
             mockResponse = new MockResponse();
             spyOn(mockResponse, 'send');
-            var fn = mockApp.getHandlers['/items/:identifier']
+            var fn = this.mockApp.getHandlers['/items/:identifier']
             fn(mockRequest, mockResponse);
         });
 
@@ -87,7 +91,7 @@ describe('GET request for single item', function() {
             spyOn(hooks, 'after');
             spyOn(hooks, 'beforeGet');
             spyOn(hooks, 'afterGet');
-            k.expose(mockModel)
+            this.k.expose(mockModel)
                 .before(hooks.before)
                 .after(hooks.after)
                 .beforeGet(hooks.beforeGet)
@@ -96,7 +100,7 @@ describe('GET request for single item', function() {
             mockRequest = new MockRequest({
                 params: { identifier: '1' }
             });
-            mockApp.getHandlers['/items/:identifier'](mockRequest, mockResponse);
+            this.mockApp.getHandlers['/items/:identifier'](mockRequest, mockResponse);
         });
 
         it('should call the before hook with the correct arguments',
@@ -125,25 +129,9 @@ describe('GET request for single item', function() {
 
     });
 
-    describe('with a before hook that throws an error', function() {
-
-        var hooks, mockFetchedModel;
-
-        beforeEach(function() {
-            hooks = { before: function() { } };
-            spyOn(hooks, 'before').and.throwError('err');
-            k.expose(new MockModel('items')).before(hooks.before);
-            mockResponse = new MockResponse();
-            mockRequest = new MockRequest();
-            spyOn(mockResponse, 'send');
-            mockApp.getHandlers['/items/:identifier'](mockRequest, mockResponse);
-        });
-
-        it('should respond with an error', function() {
-            expect(mockResponse.send.calls.argsFor(0)[0])
-                .toEqual('Error getting items');
-        });
-
-    });
+    describeTestsForHookError('before', 'get', '/items/:identifier');
+    describeTestsForHookError('after', 'get', '/items/:identifier');
+    describeTestsForHookError('beforeGet', 'get', '/items/:identifier');
+    describeTestsForHookError('afterGet', 'get', '/items/:identifier');
 
 });

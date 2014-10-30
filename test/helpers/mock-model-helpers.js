@@ -14,10 +14,18 @@ global.MockModel = function(tableName, modelMocks) {
         return { tableName: tableName };
     };
 
-    m.prototype.fetchAll = modelMocks.fetchAll || function() {};
-    m.prototype.fetch = modelMocks.fetch || function() {};
-    m.prototype.where = modelMocks.where || function() {};
-    m.prototype.save = modelMocks.save || function() {};
+    m.prototype.fetchAll = modelMocks.fetchAll || function() {
+        return new MockPromise([new MockModel(tableName)]);
+    };
+    m.prototype.fetch = modelMocks.fetch || function() {
+        return new MockPromise([new MockModel(tableName)]);
+    };
+    m.prototype.where = modelMocks.where || function() {
+        return new MockModel(tableName, modelMocks);
+    };
+    m.prototype.save = modelMocks.save || function() {
+        return new MockPromise([new MockModel(tableName)]);
+    };
 
     return m;
 };

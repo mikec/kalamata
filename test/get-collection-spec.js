@@ -1,10 +1,10 @@
 describe('GET request for collection', function() {
 
-    var mockApp, mockResponse, mockRequest, k, w, fetchAllCalled;
+    var mockResponse, mockRequest, w, fetchAllCalled;
 
     beforeEach(function() {
-        mockApp = new MockApp();
-        k = require('../index')(mockApp);
+        this.mockApp = new MockApp();
+        this.k = require('../index')(this.mockApp);
     });
 
     describe('without any query params', function() {
@@ -12,10 +12,10 @@ describe('GET request for collection', function() {
         beforeEach(function() {
             fetchAllCalled = false;
             var mockModel = getMockModel('foo');
-            k.expose(mockModel);
+            this.k.expose(mockModel);
             mockResponse = new MockResponse();
             spyOn(mockResponse, 'send');
-            mockApp.getHandlers['/items'](new MockRequest(), mockResponse);
+            this.mockApp.getHandlers['/items'](new MockRequest(), mockResponse);
         });
 
         it('should call fetchAll', function() {
@@ -33,7 +33,8 @@ describe('GET request for collection', function() {
         describe('set to a valid JSON object', function() {
 
             beforeEach(function() {
-                setupWhereQueryTests('{"firstname":"mike","lastname":"c"}');
+                setupWhereQueryTests
+                    .call(this, '{"firstname":"mike","lastname":"c"}');
             });
 
             it('should call \'where\' on the model and pass the parsed query value',
@@ -48,7 +49,7 @@ describe('GET request for collection', function() {
         function() {
 
             beforeEach(function() {
-                setupWhereQueryTests('{firstname:"mike",lastname:"c"}');
+                setupWhereQueryTests.call(this, '{firstname:"mike",lastname:"c"}');
             });
 
             it('should call \'where\' on the model and pass the parsed query value',
@@ -62,11 +63,10 @@ describe('GET request for collection', function() {
         describe('set to an invalid JSON object', function() {
 
             beforeEach(function() {
-                setupWhereQueryTests('{firstname}');
+                setupWhereQueryTests.call(this, '{firstname}');
             });
 
-            it('should send an error response',
-            function() {
+            it('should send an error response', function() {
                 expect(mockResponse.send.calls.argsFor(0)[0])
                     .toEqual("Error parsing JSON. '{firstname}' is not valid JSON");
             });
@@ -77,10 +77,10 @@ describe('GET request for collection', function() {
             w = null;
             fetchAllCalled = false;
             var mockModel = getMockModelWithQueryParam();
-            k.expose(mockModel);
+            this.k.expose(mockModel);
             mockResponse = new MockResponse();
             spyOn(mockResponse, 'send');
-            mockApp.getHandlers['/items'](new MockRequest({
+            this.mockApp.getHandlers['/items'](new MockRequest({
                 query: {
                     where: whereQueryVal
                 }
@@ -106,14 +106,14 @@ describe('GET request for collection', function() {
             spyOn(hooks, 'after');
             spyOn(hooks, 'beforeGetCollection');
             spyOn(hooks, 'afterGetCollection');
-            k.expose(mockModel)
+            this.k.expose(mockModel)
                 .before(hooks.before)
                 .after(hooks.after)
                 .beforeGetCollection(hooks.beforeGetCollection)
                 .afterGetCollection(hooks.afterGetCollection);
             mockResponse = new MockResponse();
             mockRequest = new MockRequest();
-            mockApp.getHandlers['/items'](mockRequest, mockResponse);
+            this.mockApp.getHandlers['/items'](mockRequest, mockResponse);
         });
 
         it('should call the before hook with the correct arguments',
@@ -146,43 +146,10 @@ describe('GET request for collection', function() {
 
     });
 
-    describeTestsForHookError('before');
-    describeTestsForHookError('after');
-    describeTestsForHookError('beforeGetCollection');
-    describeTestsForHookError('afterGetCollection');
-
-    function describeTestsForHookError(hookType) {
-
-        describe('and the \'' + hookType + '\' hook throws an error', function() {
-
-            var hooks;
-
-            beforeEach(function() {
-                fetchAllCalled = false;
-                var mockModel = getMockModel('foo');
-                k.expose(mockModel)[hookType](function() {
-                    throw new Error('hook error');
-                });
-                mockResponse = new MockResponse();
-                mockRequest = new MockRequest();
-                spyOn(mockResponse, 'send');
-                mockApp.getHandlers['/items'](mockRequest, mockResponse);
-            });
-
-            it('should respond with an error', function() {
-                expect(mockResponse.send.calls.argsFor(0)[0])
-                    .toEqual('Error getting items');
-            });
-
-            if(hookType.indexOf('before') !== -1) {
-                it('should not call fetchAll', function() {
-                    expect(fetchAllCalled).toBeFalsy();
-                });
-            }
-
-        });
-
-    }
+    describeTestsForHookError('before', 'get', '/items');
+    describeTestsForHookError('after', 'get', '/items');
+    describeTestsForHookError('beforeGetCollection', 'get', '/items');
+    describeTestsForHookError('afterGetCollection', 'get', '/items');
 
     function getMockModel(collectionVal) {
         var promiseArgs = [];
