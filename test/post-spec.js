@@ -8,7 +8,7 @@ describe('POST request to create a new item', function() {
     describe('and save succeeded', function() {
 
         beforeEach(function() {
-            this.k.expose(new MockModel('items', {
+            this.k.expose(MockModel.get('items', {
                 save: function() {
                     return new MockPromise([{
                         get: function() { return '1'; }
@@ -36,7 +36,7 @@ describe('POST request to create a new item', function() {
             this.mockRequest = new MockRequest({
                 body: { name: 'mock' }
             });
-            this.k.expose(new MockModel('items', {
+            this.k.expose(MockModel.get('items', {
                 save: function() {
                     return new MockFailPromise();
                 }

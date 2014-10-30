@@ -17,7 +17,7 @@ describe('PUT request to update an item', function() {
             this.mockFetchedModel = {
                 save: function() {}
             };
-            this.mockModel = new MockModel('items', {
+            this.mockModel = MockModel.get('items', {
                 fetch: function() {
                     return new MockPromise([$this.mockFetchedModel]);
                 }
@@ -57,7 +57,7 @@ describe('PUT request to update an item', function() {
             });
             this.mockResponse = new MockResponse();
             spyOn(this.mockResponse, 'send');
-            this.k.expose(new MockModel('items', {
+            this.k.expose(MockModel.get('items', {
                 fetch: function() {
                     return $this.p;
                 }

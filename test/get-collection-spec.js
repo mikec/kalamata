@@ -8,7 +8,7 @@ describe('GET request for collection', function() {
     describe('without any query params', function() {
 
         beforeEach(function() {
-            this.mockModel = new MockModel('items', {
+            this.mockModel = MockModel.get('items', {
                 fetchAll: function() {
                     return new MockPromise(['items']);
                 }
@@ -80,7 +80,7 @@ describe('GET request for collection', function() {
         function setupWhereQueryTests(whereQueryVal) {
             var $this = this;
             this.w = null;
-            var mockModel = new MockModel('items', {
+            var mockModel = MockModel.get('items', {
                 where: function(_w) {
                     $this.w = _w;
                     return {
@@ -105,7 +105,7 @@ describe('GET request for collection', function() {
     describe('with hooks setup', function() {
 
         beforeEach(function() {
-            this.mockModel = new MockModel('items', {
+            this.mockModel = MockModel.get('items', {
                 fetchAll: function() {
                     return new MockPromise(['items']);
                 }

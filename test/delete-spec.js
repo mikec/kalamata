@@ -12,8 +12,8 @@ describe('DELETE request to delete an item', function() {
                 params: { identifier: '1' }
             });
             this.mockResponse = new MockResponse();
-            var m = new MockModel();
-            mockModel = new MockModel('items', {
+            var m = MockModel.get();
+            mockModel = MockModel.get('items', {
                 fetch: function() {
                     return new MockPromise([new m()]);
                 }
@@ -47,7 +47,7 @@ describe('DELETE request to delete an item', function() {
                 params: { identifier: '1' }
             });
             this.mockResponse = new MockResponse();
-            mockModel = new MockModel('items', {
+            mockModel = MockModel.get('items', {
                 fetch: function() {
                     return $this.p;
                 }

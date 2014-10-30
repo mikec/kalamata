@@ -12,7 +12,7 @@ describe('initialization', function() {
 
         beforeEach(function() {
             this.k = require('../index')(this.mockApp);
-            this.k.expose(new MockModel('items'));
+            this.k.expose(MockModel.get('items'));
         });
 
         runEndpointConfigTests('/items');
@@ -23,7 +23,7 @@ describe('initialization', function() {
 
         beforeEach(function() {
             this.k = require('../index')(this.mockApp, { apiRoot: 'api' });
-            this.k.expose(new MockModel('items'));
+            this.k.expose(MockModel.get('items'));
         });
 
         runEndpointConfigTests('/api/items');
@@ -35,7 +35,7 @@ describe('initialization', function() {
 
         beforeEach(function() {
             this.k = require('../index')(this.mockApp, { apiRoot: 'api/v1' });
-            this.k.expose(new MockModel('items'));
+            this.k.expose(MockModel.get('items'));
         });
 
         runEndpointConfigTests('/api/v1/items');
@@ -47,7 +47,7 @@ describe('initialization', function() {
 
         beforeEach(function() {
             this.k = require('../index')(this.mockApp, { apiRoot: '/api/' });
-            this.k.expose(new MockModel('items'));
+            this.k.expose(MockModel.get('items'));
         });
 
         runEndpointConfigTests('/api/items');

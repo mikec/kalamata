@@ -10,7 +10,7 @@ describe('GET request for single item', function() {
         beforeEach(function() {
             var $this = this;
             this.mockFetchedModel = { name: 'mock' };
-            this.mockModel = new MockModel('items', {
+            this.mockModel = MockModel.get('items', {
                 fetch: function() {
                     return new MockPromise([$this.mockFetchedModel]);
                 }
@@ -38,7 +38,7 @@ describe('GET request for single item', function() {
         beforeEach(function() {
             var $this = this;
             this.p = new MockPromise();
-            var mockModel = new MockModel('items', {
+            var mockModel = MockModel.get('items', {
                 fetch: function() {
                     return new MockPromise([null], $this.p);
                 }
@@ -71,7 +71,7 @@ describe('GET request for single item', function() {
         beforeEach(function() {
             var $this = this;
             this.mockFetchedModel = { name: 'mock' };
-            var mockModel = new MockModel('items', {
+            var mockModel = MockModel.get('items', {
                 fetch: function() {
                     return new MockPromise([$this.mockFetchedModel]);
                 }

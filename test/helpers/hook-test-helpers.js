@@ -11,7 +11,7 @@ function(hookType, handlerType, endpoint) {
             hooks = { };
             hooks[hookType] = function() { }
             spyOn(hooks, hookType).and.throwError(hookType + ' hook error');
-            mockModel = new MockModel('items');
+            mockModel = MockModel.get('items');
             this.k.expose(mockModel)[hookType](hooks[hookType]);
             mockResponse = new MockResponse();
             mockRequest = new MockRequest();
