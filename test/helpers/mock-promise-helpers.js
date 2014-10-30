@@ -5,7 +5,7 @@ global.MockPromise = function(args, nextPromise) {
 };
 
 MockPromise.prototype.then = function(fn) {
-    if(!this.nextPromise) this.nextPromise = new MockPromise();
+    if(!this.nextPromise) this.nextPromise = new MockPromise(this.args);
     if(!this.thrownError && fn) {
         try {
             fn.apply(null, this.args);

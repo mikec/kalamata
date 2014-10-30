@@ -73,7 +73,7 @@ describe('GET request for single item', function() {
         },
         {
             hookType: 'after',
-            expect: [{ name: 'mock' }]
+            expect: [{ type: 'MockModel' }]
         },
         {
             hookType: 'beforeGet',
@@ -81,7 +81,7 @@ describe('GET request for single item', function() {
         },
         {
             hookType: 'afterGet',
-            expect: [{ name: 'mock' }]
+            expect: [{ type: 'MockModel' }]
         }
     ]);
 

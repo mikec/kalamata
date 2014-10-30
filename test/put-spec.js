@@ -81,4 +81,23 @@ describe('PUT request to update an item', function() {
 
     });
 
+    describeTestsForHooks('put', '/items/:identifier', [
+        {
+            hookType: 'before',
+            expect: ['1', { data: 'mock' }]
+        },
+        {
+            hookType: 'after',
+            expect: [{ type: 'MockModel' }]
+        },
+        {
+            hookType: 'beforeUpdate',
+            expect: ['1', { data: 'mock' }]
+        },
+        {
+            hookType: 'afterUpdate',
+            expect: [{ type: 'MockModel' }]
+        }
+    ]);
+
 });

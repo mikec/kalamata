@@ -61,7 +61,7 @@ describe('POST request to create a new item', function() {
         },
         {
             hookType: 'after',
-            expect: [{ name: 'mock' }]
+            expect: [{ type: 'MockModel' }]
         },
         {
             hookType: 'beforeCreate',
@@ -69,7 +69,7 @@ describe('POST request to create a new item', function() {
         },
         {
             hookType: 'afterCreate',
-            expect: [{ name: 'mock' }]
+            expect: [{ type: 'MockModel' }]
         }
     ]);
 

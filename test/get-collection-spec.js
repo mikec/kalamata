@@ -108,14 +108,14 @@ describe('GET request for collection', function() {
         },
         {
             hookType: 'after',
-            expect: [[{ name: 'mock' },{ name: 'mock' }]]
+            expect: [{ type: 'MockModelCollection' }]
         },
         {
             hookType: 'beforeGetCollection'
         },
         {
             hookType: 'afterGetCollection',
-            expect: [[{ name: 'mock' },{ name: 'mock' }]]
+            expect: [{ type: 'MockModelCollection' }]
         }
     ]);
 

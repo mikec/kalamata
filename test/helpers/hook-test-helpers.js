@@ -46,22 +46,8 @@ function(handlerType, endpoint, hooksToTest) {
     describe('with hooks setup', function() {
 
         beforeEach(function() {
-            var mockModel = MockModel.get('items', {
-                fetch: function() {
-                    // resolve promise with single item
-                    return new MockPromise([{ name: 'mock' }]);
-                },
-                fetchAll: function() {
-                    // resolve promise with collection
-                    return new MockPromise([[{ name: 'mock' },{ name: 'mock' }]]);
-                },
-                save: function() {
-                    // resolve promise with single item
-                    return new MockPromise([{ name: 'mock' }]);
-                }
-            });
             this.hooks = {};
-            var kChainer = this.k.expose(mockModel)
+            var kChainer = this.k.expose(MockModel.get('items'))
             for(var i in hooksToTest) {
                 var h = hooksToTest[i];
                 this.hooks[h.hookType] = function() {};
@@ -89,8 +75,17 @@ function(handlerType, endpoint, hooksToTest) {
             it('should call the ' + h.hookType + ' hook with the correct arguments',
             function() {
                 for(var n in h.expect) {
-                    expect(this.hooks[h.hookType].calls.argsFor(0)[n])
-                        .toEqual(h.expect[n]);
+                    var val = h.expect[n];
+                    if(val.type == 'MockModelCollection') {
+                        expect(this.hooks[h.hookType].calls.argsFor(0)[n][0].fetch)
+                            .toBeDefined();
+                    } else if (val.type == 'MockModel') {
+                        expect(this.hooks[h.hookType].calls.argsFor(0)[n].fetch)
+                            .toBeDefined();
+                    } else {
+                        expect(this.hooks[h.hookType].calls.argsFor(0)[n])
+                            .toEqual(val);
+                    }
                 }
                 expect(this.hooks[h.hookType].calls.argsFor(0)[h.expect.length])
                         .toEqual(this.mockRequest);
