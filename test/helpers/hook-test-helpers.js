@@ -82,6 +82,10 @@ function(handlerType, endpoint, hooksToTest) {
         for(var j in hooksToTest) {
             var h = hooksToTest[j];
             if(!h.expect) h.expect = [];
+            setupTest(h);
+        }
+
+        function setupTest(h) {
             it('should call the ' + h.hookType + ' hook with the correct arguments',
             function() {
                 for(var n in h.expect) {
