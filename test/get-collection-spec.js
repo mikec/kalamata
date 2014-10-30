@@ -11,7 +11,7 @@ describe('GET request for collection', function() {
 
         beforeEach(function() {
             fetchAllCalled = false;
-            var mockModel = getMockModel('foo');
+            var mockModel = getMockModel('items');
             this.k.expose(mockModel);
             mockResponse = new MockResponse();
             spyOn(mockResponse, 'send');
@@ -23,7 +23,7 @@ describe('GET request for collection', function() {
         });
 
         it('should respond with the result of the fetchAll promise', function() {
-            expect(mockResponse.send.calls.argsFor(0)[0]).toEqual('foo');
+            expect(mockResponse.send.calls.argsFor(0)[0]).toEqual('items');
         });
 
     });
@@ -95,7 +95,7 @@ describe('GET request for collection', function() {
 
         beforeEach(function() {
             fetchAllCalled = false;
-            var mockModel = getMockModel('foo');
+            var mockModel = getMockModel('items');
             hooks = {
                 before: function() { },
                 after: function() { },
@@ -125,7 +125,7 @@ describe('GET request for collection', function() {
         it('should call the after hook with the correct arguments',
         function() {
             expect(hooks.after.calls.argsFor(0))
-                .toEqual(['foo', mockRequest, mockResponse]);
+                .toEqual(['items', mockRequest, mockResponse]);
         });
 
         it('should call the beforeGetCollection hook with the correct arguments',
@@ -137,7 +137,7 @@ describe('GET request for collection', function() {
         it('should call the afterGetCollection hook with the correct arguments',
         function() {
             expect(hooks.afterGetCollection.calls.argsFor(0))
-                    .toEqual(['foo', mockRequest, mockResponse]);
+                    .toEqual(['items', mockRequest, mockResponse]);
         });
 
         it('should call fetchAll', function() {
