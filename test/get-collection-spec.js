@@ -102,63 +102,26 @@ describe('GET request for collection', function() {
 
     });
 
-    describe('with hooks setup', function() {
-
-        beforeEach(function() {
-            this.mockModel = MockModel.get('items', {
-                fetchAll: function() {
-                    return new MockPromise(['items']);
-                }
-            });
-            this.hooks = {
-                before: function() { },
-                after: function() { },
-                beforeGetCollection: function() { },
-                afterGetCollection: function() { }
-            };
-            spyOn(this.hooks, 'before');
-            spyOn(this.hooks, 'after');
-            spyOn(this.hooks, 'beforeGetCollection');
-            spyOn(this.hooks, 'afterGetCollection');
-            this.k.expose(this.mockModel)
-                .before(this.hooks.before)
-                .after(this.hooks.after)
-                .beforeGetCollection(this.hooks.beforeGetCollection)
-                .afterGetCollection(this.hooks.afterGetCollection);
-            this.mockResponse = new MockResponse();
-            this.mockRequest = new MockRequest();
-            this.mockApp.getHandlers['/items'](this.mockRequest, this.mockResponse);
-        });
-
-        it('should call the before hook with the correct arguments',
-        function() {
-            expect(this.hooks.before.calls.argsFor(0))
-                .toEqual([this.mockRequest, this.mockResponse]);
-        });
-
-        it('should call the after hook with the correct arguments',
-        function() {
-            expect(this.hooks.after.calls.argsFor(0))
-                .toEqual(['items', this.mockRequest, this.mockResponse]);
-        });
-
-        it('should call the beforeGetCollection hook with the correct arguments',
-        function() {
-            expect(this.hooks.beforeGetCollection.calls.argsFor(0))
-                    .toEqual([this.mockRequest, this.mockResponse]);
-        });
-
-        it('should call the afterGetCollection hook with the correct arguments',
-        function() {
-            expect(this.hooks.afterGetCollection.calls.argsFor(0))
-                    .toEqual(['items', this.mockRequest, this.mockResponse]);
-        });
-
-        it('should instantiate a new model', function() {
-            expect(this.mockModel.modelInstances.length).toEqual(1);
-        });
-
-    });
+    describeTestsForHooks('get', '/items', [
+        {
+            hookType: 'before',
+            handlerType: 'get'
+        },
+        {
+            hookType: 'after',
+            handlerType: 'get',
+            expect: [[{ name: 'mock' },{ name: 'mock' }]]
+        },
+        {
+            hookType: 'beforeGetCollection',
+            handlerType: 'get'
+        },
+        {
+            hookType: 'afterGetCollection',
+            handlerType: 'get',
+            expect: [[{ name: 'mock' },{ name: 'mock' }]]
+        }
+    ]);
 
     describeTestsForHookError('before', 'get', '/items');
     describeTestsForHookError('after', 'get', '/items');
