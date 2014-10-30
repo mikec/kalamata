@@ -26,6 +26,9 @@ global.MockModel = function(tableName, modelMocks) {
     m.prototype.save = modelMocks.save || function() {
         return new MockPromise([new MockModel(tableName)]);
     };
+    m.prototype.destroy = modelMocks.destroy || function() {
+        return new MockPromise([new MockModel(tableName)]);
+    };
 
     return m;
 };

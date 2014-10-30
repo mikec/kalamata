@@ -1,32 +1,30 @@
 describe('POST request to create a new item', function() {
 
-    var mockApp, mockResponse, mockRequest, k;
-
     beforeEach(function() {
-        mockApp = new MockApp();
-        k = require('../index')(mockApp);
+        this.mockApp = new MockApp();
+        this.k = require('../index')(this.mockApp);
     });
 
     describe('and save succeeded', function() {
 
-        var mockFetchedModel = {
-            get: function() { return '1'; }
-        };
-
         beforeEach(function() {
-            var mockModel = new MockModel('items', {
+            this.k.expose(new MockModel('items', {
                 save: function() {
-                    return new MockPromise([mockFetchedModel]);
+                    return new MockPromise([{
+                        get: function() { return '1'; }
+                    }]);
                 }
-            });
-            k.expose(mockModel);
-            mockResponse = new MockResponse();
-            spyOn(mockResponse, 'send');
-            mockApp.postHandlers['/items'](new MockRequest(), mockResponse);
+            }));
+            this.mockResponse = new MockResponse();
+            spyOn(this.mockResponse, 'send');
+            this.mockApp.postHandlers['/items'](
+                new MockRequest(),
+                this.mockResponse
+            );
         });
 
         it('should response with the identifier of the new item', function() {
-            expect(mockResponse.send.calls.argsFor(0)[0])
+            expect(this.mockResponse.send.calls.argsFor(0)[0])
                 .toEqual({ id : '1' });
         });
 
@@ -35,24 +33,23 @@ describe('POST request to create a new item', function() {
     describe('and save failed', function() {
 
         beforeEach(function() {
-            mockRequest = new MockRequest({
+            this.mockRequest = new MockRequest({
                 body: { name: 'mock' }
             });
-            var mockModel = new MockModel('items', {
+            this.k.expose(new MockModel('items', {
                 save: function() {
                     return new MockFailPromise();
                 }
-            });
-            k.expose(mockModel);
-            mockResponse = new MockResponse();
-            spyOn(mockResponse, 'send');
-            mockApp.postHandlers['/items'](mockRequest, mockResponse);
+            }));
+            this.mockResponse = new MockResponse();
+            spyOn(this.mockResponse, 'send');
+            this.mockApp.postHandlers['/items'](this.mockRequest, this.mockResponse);
         });
 
         it('should response with an error', function() {
-            expect(mockResponse.send.calls.argsFor(0)[0])
+            expect(this.mockResponse.send.calls.argsFor(0)[0])
                 .toEqual('Error saving items ' +
-                            JSON.stringify(mockRequest.body));
+                            JSON.stringify(this.mockRequest.body));
         });
 
     });

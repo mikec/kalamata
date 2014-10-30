@@ -1,20 +1,18 @@
 describe('initialization', function() {
 
-    var mockApp, k;
-
     beforeEach(function() {
-        mockApp = new MockApp();
-        spyOn(mockApp, 'get');
-        spyOn(mockApp, 'post');
-        spyOn(mockApp, 'put');
-        spyOn(mockApp, 'delete');
+        this.mockApp = new MockApp();
+        spyOn(this.mockApp, 'get');
+        spyOn(this.mockApp, 'post');
+        spyOn(this.mockApp, 'put');
+        spyOn(this.mockApp, 'delete');
     })
 
     describe('with no options', function() {
 
         beforeEach(function() {
-            k = require('../index')(mockApp);
-            k.expose(new MockModel('items'));
+            this.k = require('../index')(this.mockApp);
+            this.k.expose(new MockModel('items'));
         });
 
         runEndpointConfigTests('/items');
@@ -24,8 +22,8 @@ describe('initialization', function() {
     describe('with an apiRoot option', function() {
 
         beforeEach(function() {
-            k = require('../index')(mockApp, { apiRoot: 'api' });
-            k.expose(new MockModel('items'));
+            this.k = require('../index')(this.mockApp, { apiRoot: 'api' });
+            this.k.expose(new MockModel('items'));
         });
 
         runEndpointConfigTests('/api/items');
@@ -36,8 +34,8 @@ describe('initialization', function() {
     function() {
 
         beforeEach(function() {
-            k = require('../index')(mockApp, { apiRoot: 'api/v1' });
-            k.expose(new MockModel('items'));
+            this.k = require('../index')(this.mockApp, { apiRoot: 'api/v1' });
+            this.k.expose(new MockModel('items'));
         });
 
         runEndpointConfigTests('/api/v1/items');
@@ -48,8 +46,8 @@ describe('initialization', function() {
     function() {
 
         beforeEach(function() {
-            k = require('../index')(mockApp, { apiRoot: '/api/' });
-            k.expose(new MockModel('items'));
+            this.k = require('../index')(this.mockApp, { apiRoot: '/api/' });
+            this.k.expose(new MockModel('items'));
         });
 
         runEndpointConfigTests('/api/items');
@@ -59,25 +57,25 @@ describe('initialization', function() {
     function runEndpointConfigTests(endpointPath) {
 
         it('should configure get endpoint for collection', function() {
-            expect(mockApp.get.calls.argsFor(0)[0]).toEqual(endpointPath);
+            expect(this.mockApp.get.calls.argsFor(0)[0]).toEqual(endpointPath);
         });
 
         it('should configure get endpoint for single item', function() {
-            expect(mockApp.get.calls.argsFor(1)[0])
+            expect(this.mockApp.get.calls.argsFor(1)[0])
                 .toEqual(endpointPath + '/:identifier');
         });
 
         it('should configure post endpoint for collection', function() {
-            expect(mockApp.post.calls.argsFor(0)[0]).toEqual(endpointPath);
+            expect(this.mockApp.post.calls.argsFor(0)[0]).toEqual(endpointPath);
         });
 
         it('should configure put endpoint for single item', function() {
-            expect(mockApp.put.calls.argsFor(0)[0])
+            expect(this.mockApp.put.calls.argsFor(0)[0])
                 .toEqual(endpointPath + '/:identifier');
         });
 
         it('should configure delete endpoint for single item', function() {
-            expect(mockApp.delete.calls.argsFor(0)[0])
+            expect(this.mockApp.delete.calls.argsFor(0)[0])
                 .toEqual(endpointPath + '/:identifier');
         });
 

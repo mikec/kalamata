@@ -1,7 +1,5 @@
 describe('GET request for collection', function() {
 
-    var mockResponse, mockRequest, w, fetchAllCalled;
-
     beforeEach(function() {
         this.mockApp = new MockApp();
         this.k = require('../index')(this.mockApp);
@@ -10,20 +8,26 @@ describe('GET request for collection', function() {
     describe('without any query params', function() {
 
         beforeEach(function() {
-            fetchAllCalled = false;
-            var mockModel = getMockModel('items');
-            this.k.expose(mockModel);
-            mockResponse = new MockResponse();
-            spyOn(mockResponse, 'send');
-            this.mockApp.getHandlers['/items'](new MockRequest(), mockResponse);
+            this.mockModel = new MockModel('items', {
+                fetchAll: function() {
+                    return new MockPromise(['items']);
+                }
+            });
+            this.k.expose(this.mockModel);
+            this.mockResponse = new MockResponse();
+            spyOn(this.mockResponse, 'send');
+            this.mockApp.getHandlers['/items'](
+                new MockRequest(),
+                this.mockResponse
+            );
         });
 
-        it('should call fetchAll', function() {
-            expect(fetchAllCalled).toBeTruthy();
+        it('should instantiate a new model', function() {
+            expect(this.mockModel.modelInstances.length).toEqual(1);
         });
 
         it('should respond with the result of the fetchAll promise', function() {
-            expect(mockResponse.send.calls.argsFor(0)[0]).toEqual('items');
+            expect(this.mockResponse.send.calls.argsFor(0)[0]).toEqual('items');
         });
 
     });
@@ -39,8 +43,8 @@ describe('GET request for collection', function() {
 
             it('should call \'where\' on the model and pass the parsed query value',
             function() {
-                expect(w.firstname).toEqual('mike');
-                expect(w.lastname).toEqual('c');
+                expect(this.w.firstname).toEqual('mike');
+                expect(this.w.lastname).toEqual('c');
             });
 
         });
@@ -54,8 +58,8 @@ describe('GET request for collection', function() {
 
             it('should call \'where\' on the model and pass the parsed query value',
             function() {
-                expect(w.firstname).toEqual('mike');
-                expect(w.lastname).toEqual('c');
+                expect(this.w.firstname).toEqual('mike');
+                expect(this.w.lastname).toEqual('c');
             });
 
         });
@@ -67,81 +71,91 @@ describe('GET request for collection', function() {
             });
 
             it('should send an error response', function() {
-                expect(mockResponse.send.calls.argsFor(0)[0])
+                expect(this.mockResponse.send.calls.argsFor(0)[0])
                     .toEqual("Error parsing JSON. '{firstname}' is not valid JSON");
             });
 
         });
 
         function setupWhereQueryTests(whereQueryVal) {
-            w = null;
-            fetchAllCalled = false;
-            var mockModel = getMockModelWithQueryParam();
+            var $this = this;
+            this.w = null;
+            var mockModel = new MockModel('items', {
+                where: function(_w) {
+                    $this.w = _w;
+                    return {
+                        fetchAll: function() {
+                            return new MockPromise(['items']);
+                        }
+                    }
+                }
+            });
             this.k.expose(mockModel);
-            mockResponse = new MockResponse();
-            spyOn(mockResponse, 'send');
+            this.mockResponse = new MockResponse();
+            spyOn(this.mockResponse, 'send');
             this.mockApp.getHandlers['/items'](new MockRequest({
                 query: {
                     where: whereQueryVal
                 }
-            }), mockResponse);
+            }), this.mockResponse);
         }
 
     });
 
     describe('with hooks setup', function() {
 
-        var hooks;
-
         beforeEach(function() {
-            fetchAllCalled = false;
-            var mockModel = getMockModel('items');
-            hooks = {
+            this.mockModel = new MockModel('items', {
+                fetchAll: function() {
+                    return new MockPromise(['items']);
+                }
+            });
+            this.hooks = {
                 before: function() { },
                 after: function() { },
                 beforeGetCollection: function() { },
                 afterGetCollection: function() { }
             };
-            spyOn(hooks, 'before');
-            spyOn(hooks, 'after');
-            spyOn(hooks, 'beforeGetCollection');
-            spyOn(hooks, 'afterGetCollection');
-            this.k.expose(mockModel)
-                .before(hooks.before)
-                .after(hooks.after)
-                .beforeGetCollection(hooks.beforeGetCollection)
-                .afterGetCollection(hooks.afterGetCollection);
-            mockResponse = new MockResponse();
-            mockRequest = new MockRequest();
-            this.mockApp.getHandlers['/items'](mockRequest, mockResponse);
+            spyOn(this.hooks, 'before');
+            spyOn(this.hooks, 'after');
+            spyOn(this.hooks, 'beforeGetCollection');
+            spyOn(this.hooks, 'afterGetCollection');
+            this.k.expose(this.mockModel)
+                .before(this.hooks.before)
+                .after(this.hooks.after)
+                .beforeGetCollection(this.hooks.beforeGetCollection)
+                .afterGetCollection(this.hooks.afterGetCollection);
+            this.mockResponse = new MockResponse();
+            this.mockRequest = new MockRequest();
+            this.mockApp.getHandlers['/items'](this.mockRequest, this.mockResponse);
         });
 
         it('should call the before hook with the correct arguments',
         function() {
-            expect(hooks.before.calls.argsFor(0))
-                .toEqual([mockRequest, mockResponse]);
+            expect(this.hooks.before.calls.argsFor(0))
+                .toEqual([this.mockRequest, this.mockResponse]);
         });
 
         it('should call the after hook with the correct arguments',
         function() {
-            expect(hooks.after.calls.argsFor(0))
-                .toEqual(['items', mockRequest, mockResponse]);
+            expect(this.hooks.after.calls.argsFor(0))
+                .toEqual(['items', this.mockRequest, this.mockResponse]);
         });
 
         it('should call the beforeGetCollection hook with the correct arguments',
         function() {
-            expect(hooks.beforeGetCollection.calls.argsFor(0))
-                    .toEqual([mockRequest, mockResponse]);
+            expect(this.hooks.beforeGetCollection.calls.argsFor(0))
+                    .toEqual([this.mockRequest, this.mockResponse]);
         });
 
         it('should call the afterGetCollection hook with the correct arguments',
         function() {
-            expect(hooks.afterGetCollection.calls.argsFor(0))
-                    .toEqual(['items', mockRequest, mockResponse]);
+            expect(this.hooks.afterGetCollection.calls.argsFor(0))
+                    .toEqual(['items', this.mockRequest, this.mockResponse]);
         });
 
-        it('should call fetchAll', function() {
-            expect(fetchAllCalled).toBeTruthy();
+        it('should instantiate a new model', function() {
+            expect(this.mockModel.modelInstances.length).toEqual(1);
         });
 
     });
@@ -150,30 +164,5 @@ describe('GET request for collection', function() {
     describeTestsForHookError('after', 'get', '/items');
     describeTestsForHookError('beforeGetCollection', 'get', '/items');
     describeTestsForHookError('afterGetCollection', 'get', '/items');
-
-    function getMockModel(collectionVal) {
-        var promiseArgs = [];
-        promiseArgs.push(collectionVal);
-        return new MockModel('items', {
-            fetchAll: function() {
-                fetchAllCalled = true;
-                return new MockPromise(promiseArgs);
-            }
-        });
-    }
-
-    function getMockModelWithQueryParam() {
-        return new MockModel('items', {
-            where: function(_w) {
-                w = _w;
-                return {
-                    fetchAll: function() {
-                        fetchAllCalled = true;
-                        return new MockPromise();
-                    }
-                }
-            }
-        });
-    }
 
 });

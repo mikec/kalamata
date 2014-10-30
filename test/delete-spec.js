@@ -1,32 +1,29 @@
 describe('DELETE request to delete an item', function() {
 
-    var mockApp, mockResponse, mockRequest, k;
-
     beforeEach(function() {
-        mockApp = new MockApp();
-        k = require('../index')(mockApp);
+        this.mockApp = new MockApp();
+        this.k = require('../index')(this.mockApp);
     });
 
     describe('for an item that exists', function() {
 
-        var mockFetchedModel;
-
         beforeEach(function() {
-            mockRequest = new MockRequest({
+            this.mockRequest = new MockRequest({
                 params: { identifier: '1' }
             });
-            mockResponse = new MockResponse();
-            mockFetchedModel = {
-                destroy: function() {}
-            };
+            this.mockResponse = new MockResponse();
+            var m = new MockModel();
             mockModel = new MockModel('items', {
                 fetch: function() {
-                    return new MockPromise([mockFetchedModel]);
+                    return new MockPromise([new m()]);
                 }
             });
-            spyOn(mockResponse, 'send');
-            k.expose(mockModel);
-            mockApp.deleteHandlers['/items/:identifier'](mockRequest, mockResponse);
+            spyOn(this.mockResponse, 'send');
+            this.k.expose(mockModel);
+            this.mockApp.deleteHandlers['/items/:identifier'](
+                this.mockRequest,
+                this.mockResponse
+            );
         });
 
         it('should set attributes on the model that will be fetched', function() {
@@ -35,7 +32,7 @@ describe('DELETE request to delete an item', function() {
         });
 
         it('should respond with the fetched model', function() {
-            expect(mockResponse.send.calls.argsFor(0)[0])
+            expect(this.mockResponse.send.calls.argsFor(0)[0])
                 .toEqual(true);
         });
 
@@ -43,32 +40,34 @@ describe('DELETE request to delete an item', function() {
 
     describe('for an item that does not exist', function() {
 
-        var p;
-
         beforeEach(function() {
-            p = new MockPromise();
-            mockRequest = new MockRequest({
+            var $this = this;
+            this.p = new MockPromise();
+            this.mockRequest = new MockRequest({
                 params: { identifier: '1' }
             });
-            mockResponse = new MockResponse();
+            this.mockResponse = new MockResponse();
             mockModel = new MockModel('items', {
                 fetch: function() {
-                    return p;
+                    return $this.p;
                 }
             });
-            spyOn(mockResponse, 'send');
-            k.expose(mockModel);
-            mockApp.deleteHandlers['/items/:identifier'](mockRequest, mockResponse);
+            spyOn(this.mockResponse, 'send');
+            this.k.expose(mockModel);
+            this.mockApp.deleteHandlers['/items/:identifier'](
+                this.mockRequest,
+                this.mockResponse
+            );
         });
 
         it('should throw an error', function() {
-            expect(p.thrownError.message)
+            expect(this.p.thrownError.message)
                 .toEqual('Error deleting items. id = ' +
-                    mockRequest.params.identifier + ' not found');
+                    this.mockRequest.params.identifier + ' not found');
         });
 
         it('should respond with the fetched model', function() {
-            expect(mockResponse.send.calls.argsFor(0)[0])
+            expect(this.mockResponse.send.calls.argsFor(0)[0])
                 .toEqual('Error deleting items');
         });
 

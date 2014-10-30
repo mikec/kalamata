@@ -1,7 +1,5 @@
 describe('GET request for single item', function() {
 
-    var mockResponse, mockRequest;
-
     beforeEach(function() {
         this.mockApp = new MockApp();
         this.k = require('../index')(this.mockApp);
@@ -9,122 +7,130 @@ describe('GET request for single item', function() {
 
     describe('with an identifier for an item that exists', function() {
 
-        var mockFetchedModel = { name: 'mock' };
-
         beforeEach(function() {
-            var mockModel = new MockModel('items', {
+            var $this = this;
+            this.mockFetchedModel = { name: 'mock' };
+            this.mockModel = new MockModel('items', {
                 fetch: function() {
-                    return new MockPromise([mockFetchedModel]);
+                    return new MockPromise([$this.mockFetchedModel]);
                 }
             });
-            this.k.expose(mockModel);
-            mockResponse = new MockResponse();
-            spyOn(mockResponse, 'send');
+            this.k.expose(this.mockModel);
+            this.mockResponse = new MockResponse();
+            spyOn(this.mockResponse, 'send');
             var fn = this.mockApp.getHandlers['/items/:identifier']
-            fn(new MockRequest(), mockResponse);
+            fn(new MockRequest(), this.mockResponse);
         });
 
         it('should instantiate a model instance', function() {
-            expect(mockModel.modelInstances.length).toEqual(1);
+            expect(this.mockModel.modelInstances.length).toEqual(1);
         });
 
         it('should respond with the fetched model', function() {
-            expect(mockResponse.send.calls.argsFor(0)[0])
-                .toEqual(mockFetchedModel);
+            expect(this.mockResponse.send.calls.argsFor(0)[0])
+                .toEqual(this.mockFetchedModel);
         });
 
     });
 
     describe('with an identifier for an item that does not exist', function() {
 
-        var mockFetchedModel = { name: 'mock' };
-        var p;
-
         beforeEach(function() {
-            p = new MockPromise();
+            var $this = this;
+            this.p = new MockPromise();
             var mockModel = new MockModel('items', {
                 fetch: function() {
-                    return new MockPromise([null], p);
+                    return new MockPromise([null], $this.p);
                 }
             });
-            mockRequest = new MockRequest({
+            this.mockRequest = new MockRequest({
                 params: { identifier: '1' }
             });
             this.k.expose(mockModel);
-            mockResponse = new MockResponse();
-            spyOn(mockResponse, 'send');
+            this.mockResponse = new MockResponse();
+            spyOn(this.mockResponse, 'send');
             var fn = this.mockApp.getHandlers['/items/:identifier']
-            fn(mockRequest, mockResponse);
+            fn(this.mockRequest, this.mockResponse);
         });
 
         it('should respond with an error', function() {
-            expect(mockResponse.send.calls.argsFor(0)[0])
+            expect(this.mockResponse.send.calls.argsFor(0)[0])
                 .toEqual('Error getting items');
         });
 
         it('should throw an error on fetch callback', function() {
-            expect(p.thrownError.message)
+            expect(this.p.thrownError.message)
                 .toEqual('Error getting items. id = ' +
-                            mockRequest.params.identifier + ' not found');
+                            this.mockRequest.params.identifier + ' not found');
         });
 
     });
 
     describe('with hooks setup', function() {
 
-        var hooks, mockFetchedModel;
-
         beforeEach(function() {
-            mockFetchedModel = { name: 'mock' };
+            var $this = this;
+            this.mockFetchedModel = { name: 'mock' };
             var mockModel = new MockModel('items', {
                 fetch: function() {
-                    return new MockPromise([mockFetchedModel]);
+                    return new MockPromise([$this.mockFetchedModel]);
                 }
             });
-            hooks = {
+            this.hooks = {
                 before: function() { },
                 after: function() { },
                 beforeGet: function() { },
                 afterGet: function() { }
             };
-            spyOn(hooks, 'before');
-            spyOn(hooks, 'after');
-            spyOn(hooks, 'beforeGet');
-            spyOn(hooks, 'afterGet');
+            spyOn(this.hooks, 'before');
+            spyOn(this.hooks, 'after');
+            spyOn(this.hooks, 'beforeGet');
+            spyOn(this.hooks, 'afterGet');
             this.k.expose(mockModel)
-                .before(hooks.before)
-                .after(hooks.after)
-                .beforeGet(hooks.beforeGet)
-                .afterGet(hooks.afterGet);
-            mockResponse = new MockResponse();
-            mockRequest = new MockRequest({
+                .before(this.hooks.before)
+                .after(this.hooks.after)
+                .beforeGet(this.hooks.beforeGet)
+                .afterGet(this.hooks.afterGet);
+            this.mockResponse = new MockResponse();
+            this.mockRequest = new MockRequest({
                 params: { identifier: '1' }
             });
-            this.mockApp.getHandlers['/items/:identifier'](mockRequest, mockResponse);
+            this.mockApp.getHandlers['/items/:identifier'](
+                this.mockRequest,
+                this.mockResponse
+            );
         });
 
         it('should call the before hook with the correct arguments',
         function() {
-            expect(hooks.before.calls.argsFor(0))
-                .toEqual(['1', mockRequest, mockResponse]);
+            expect(this.hooks.before.calls.argsFor(0))
+                .toEqual(['1', this.mockRequest, this.mockResponse]);
         });
 
         it('should call the after hook with the correct arguments',
         function() {
-            expect(hooks.after.calls.argsFor(0))
-                .toEqual([mockFetchedModel, mockRequest, mockResponse]);
+            expect(this.hooks.after.calls.argsFor(0))
+                .toEqual([
+                    this.mockFetchedModel,
+                    this.mockRequest,
+                    this.mockResponse
+                ]);
         });
 
         it('should call the beforeGet hook with the correct arguments',
         function() {
-            expect(hooks.beforeGet.calls.argsFor(0))
-                    .toEqual(['1', mockRequest, mockResponse]);
+            expect(this.hooks.beforeGet.calls.argsFor(0))
+                    .toEqual(['1', this.mockRequest, this.mockResponse]);
         });
 
         it('should call the afterGet hook with the correct arguments',
         function() {
-            expect(hooks.afterGet.calls.argsFor(0))
-                    .toEqual([mockFetchedModel, mockRequest, mockResponse]);
+            expect(this.hooks.afterGet.calls.argsFor(0))
+                    .toEqual([
+                        this.mockFetchedModel,
+                        this.mockRequest,
+                        this.mockResponse
+                    ]);
         });
 
     });
