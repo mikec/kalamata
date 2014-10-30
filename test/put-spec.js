@@ -100,4 +100,9 @@ describe('PUT request to update an item', function() {
         }
     ]);
 
+    describeTestsForHookError('before', 'put', '/items/:identifier');
+    describeTestsForHookError('after', 'put', '/items/:identifier');
+    describeTestsForHookError('beforeUpdate', 'put', '/items/:identifier');
+    describeTestsForHookError('afterUpdate', 'put', '/items/:identifier');
+
 });
