@@ -54,4 +54,32 @@ describe('POST request to create a new item', function() {
 
     });
 
+    describeTestsForHooks('post', '/items', [
+        {
+            hookType: 'before',
+            handlerType: 'post',
+            expect: [{ data: 'mock' }]
+        },
+        {
+            hookType: 'after',
+            handlerType: 'post',
+            expect: [{ name: 'mock' }]
+        },
+        {
+            hookType: 'beforeCreate',
+            handlerType: 'post',
+            expect: [{ data: 'mock' }]
+        },
+        {
+            hookType: 'afterCreate',
+            handlerType: 'post',
+            expect: [{ name: 'mock' }]
+        }
+    ]);
+
+    describeTestsForHookError('before', 'post', '/items');
+    describeTestsForHookError('after', 'post', '/items');
+    describeTestsForHookError('beforeCreate', 'post', '/items');
+    describeTestsForHookError('afterCreate', 'post', '/items');
+
 });

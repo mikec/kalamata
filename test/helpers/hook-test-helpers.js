@@ -54,6 +54,10 @@ function(handlerType, endpoint, hooksToTest) {
                 fetchAll: function() {
                     // resolve promise with collection
                     return new MockPromise([[{ name: 'mock' },{ name: 'mock' }]]);
+                },
+                save: function() {
+                    // resolve promise with single item
+                    return new MockPromise([{ name: 'mock' }]);
                 }
             });
             this.hooks = {};
@@ -66,7 +70,8 @@ function(handlerType, endpoint, hooksToTest) {
             }
             this.mockResponse = new MockResponse();
             this.mockRequest = new MockRequest({
-                params: { identifier: '1' }
+                params: { identifier: '1' },
+                body: { data: 'mock' }
             });
             this.mockApp[handlerType+'Handlers'][endpoint](
                 this.mockRequest,
