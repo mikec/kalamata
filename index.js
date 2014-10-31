@@ -49,9 +49,7 @@ kalamata.expose = function(model, _opts_) {
     function configureEndpoints() {
 
         app.get(options.apiRoot + opts.endpointName, function(req, res) {
-            var err = runHooks(hooks.before.getCollection, [req, res], res);
-            if(err) return;
-            var promise;
+            var m;
             if(req.query.where) {
                 var w;
                 try {
@@ -62,18 +60,21 @@ kalamata.expose = function(model, _opts_) {
                                 req.query.where + '\' is not valid JSON');
                     return;
                 }
-                promise = new model().where(w).fetchAll();
+                m = new model().where(w);
             } else {
-                promise = new model().fetchAll();
+                m = new model();
             }
+
+            var beforeResult = runHooks(hooks.before.getCollection, req, res, m);
+            if(res.headersSent) return;
+
+            var promise = beforeResult.promise || m.fetchAll();
             promise.then(function(collection) {
-                var err = runHooks(
-                            hooks.after.getCollection,
-                            [collection, req, res],
-                            res
-                        );
-                if(err) return;
-                res.send(collection);
+                var afterResult = runHooks(
+                                    hooks.after.getCollection, req, res, collection);
+                return afterResult.promise || collection;
+            }).then(function(collection) {
+                sendResponse(res, collection.toJSON());
             }).catch(function(error) {
                 console.log(error.stack);
                 res.send('Error getting ' + opts.endpointName);
@@ -82,15 +83,15 @@ kalamata.expose = function(model, _opts_) {
 
         app.get(options.apiRoot + opts.endpointName + '/:identifier',
         function(req, res) {
-            var err = runHooks(
-                        hooks.before.get,
-                        [req.params.identifier, req, res],
-                        res
-                    );
-            if(err) return;
             var modelAttrs = {};
             modelAttrs[opts.identifier] = req.params.identifier;
-            new model(modelAttrs).fetch().then(function(m) {
+            var m = new model(modelAttrs);
+
+            var beforeResult = runHooks(hooks.before.get, req, res, m);
+            if(res.headersSent) return;
+
+            var promise = beforeResult.promise || m.fetch();
+            promise.then(function(m) {
                 if(!m) {
                     throw new Error(
                         'Error getting ' + opts.endpointName + '. ' +
@@ -98,9 +99,10 @@ kalamata.expose = function(model, _opts_) {
                         ' not found'
                     );
                 }
-                var err = runHooks(hooks.after.get, [m, req, res], res);
-                if(err) return;
-                res.send(m);
+                var afterResult = runHooks(hooks.after.get, req, res, m);
+                return afterResult.promise || m;
+            }).then(function(m) {
+                sendResponse(res, m);
             }).catch(function(error) {
                 console.log(error.stack);
                 res.send('Error getting ' + opts.endpointName);
@@ -108,14 +110,17 @@ kalamata.expose = function(model, _opts_) {
         });
 
         app.post(options.apiRoot + opts.endpointName, function(req, res) {
-            var err = runHooks(hooks.before.create, [req.body, req, res], res);
-            if(err) return;
-            new model(req.body).save().then(function(m) {
-                var err = runHooks(hooks.after.create, [m, req, res], res);
-                if(err) return;
-                var resData = {};
-                resData[opts.identifier] = m.get(opts.identifier);
-                res.send(resData);
+            var m = new model(req.body);
+
+            var beforeResult = runHooks(hooks.before.create, req, res, m);
+            if(res.headersSent) return;
+
+            var promise = beforeResult.promise || m.save();
+            promise.then(function(m) {
+                var afterResult = runHooks(hooks.after.create, req, res, m);
+                return afterResult.promise || m;
+            }).then(function(m) {
+                sendResponse(res, m.toJSON());
             }).catch(function(error) {
                 console.log(error.stack);
                 res.send(
@@ -127,15 +132,14 @@ kalamata.expose = function(model, _opts_) {
 
         app.put(options.apiRoot + opts.endpointName + '/:identifier',
         function(req, res) {
-            var err = runHooks(
-                        hooks.before.update,
-                        [req.params.identifier, req.body, req, res],
-                        res
-                    );
-            if(err) return;
             var modelAttrs = {};
             modelAttrs[opts.identifier] = req.params.identifier;
             new model(modelAttrs).fetch().then(function(m) {
+
+                if(m) m.set(req.body);
+                var beforeResult = runHooks(hooks.before.update, req, res, m);
+                if(res.headersSent) return;
+
                 if(!m) {
                     throw new Error(
                         'Error updating ' + opts.endpointName + '. ' +
@@ -143,12 +147,16 @@ kalamata.expose = function(model, _opts_) {
                         ' not found'
                     );
                 }
-                return m.save(req.body, {patch: true});
+
+                return beforeResult.promise || m.save();
             })
             .then(function(m) {
-                var err = runHooks(hooks.after.update, [m, req, res], res);
-                if(err) return;
-                res.send(true);
+                if(!m) return;
+                var afterResult = runHooks(hooks.after.update, req, res, m);
+                return afterResult.promise || m;
+            }).then(function(m) {
+                if(!m) return;
+                sendResponse(res, m.toJSON());
             }).catch(function(error) {
                 console.log(error.stack);
                 res.send('Error getting ' + opts.endpointName);
@@ -157,15 +165,13 @@ kalamata.expose = function(model, _opts_) {
 
         app.delete(options.apiRoot + opts.endpointName + '/:identifier',
         function(req, res) {
-            var err = runHooks(
-                        hooks.before.del,
-                        [req.params.identifier, req, res],
-                        res
-                    );
-            if(err) return;
             var modelAttrs = {};
             modelAttrs[opts.identifier] = req.params.identifier;
             new model(modelAttrs).fetch().then(function(m) {
+
+                var beforeResult = runHooks(hooks.before.del, req, res, m);
+                if(res.headersSent) return;
+
                 if(!m) {
                     throw new Error(
                         'Error deleting ' + opts.endpointName + '. ' +
@@ -173,12 +179,14 @@ kalamata.expose = function(model, _opts_) {
                         ' not found'
                     );
                 }
-                return m.destroy();
+
+                return beforeResult.promise || m.destroy();
             })
-            .then(function() {
-                var err = runHooks(hooks.after.del, [req, res], res);
-                if(err) return;
-                res.send(true);
+            .then(function(m) {
+                var afterResult = runHooks(hooks.after.del, req, res, m);
+                return afterResult.promise || m;
+            }).then(function(m) {
+                sendResponse(res, true);
             }).catch(function(error) {
                 console.log(error.stack);
                 res.send('Error deleting ' + opts.endpointName);
@@ -186,10 +194,18 @@ kalamata.expose = function(model, _opts_) {
         });
     }
 
-    function runHooks(fnArray, params, res) {
+    function runHooks(fnArray, req, res, model, result) {
         try {
+            var result;
             for(var i in fnArray) {
-                fnArray[i].apply(null, params);
+                result = fnArray[i](req, res, model, result);
+            }
+            if(result && result.then) {
+                return {
+                    promise: result
+                };
+            } else {
+                return {};
             }
         } catch(err) {
             console.log(err.stack);
@@ -231,6 +247,10 @@ kalamata.expose = function(model, _opts_) {
                 return chainer;
             };
         }
+    }
+
+    function sendResponse(response, sendData) {
+        if(!response.headersSent) response.send(sendData);
     }
 
     function parseJSON(str) {

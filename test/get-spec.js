@@ -66,7 +66,7 @@ describe('GET request for single item', function() {
 
     });
 
-    describeTestsForHooks('get', '/items/:identifier', [
+    /*describeTestsForHooks('get', '/items/:identifier', [
         {
             hookType: 'before',
             expect: ['1']
@@ -88,6 +88,6 @@ describe('GET request for single item', function() {
     describeTestsForHookError('before', 'get', '/items/:identifier');
     describeTestsForHookError('after', 'get', '/items/:identifier');
     describeTestsForHookError('beforeGet', 'get', '/items/:identifier');
-    describeTestsForHookError('afterGet', 'get', '/items/:identifier');
+    describeTestsForHookError('afterGet', 'get', '/items/:identifier');*/
 
 });

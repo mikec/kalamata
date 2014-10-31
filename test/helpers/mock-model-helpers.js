@@ -31,6 +31,12 @@ global.MockModel = {
         m.prototype.destroy = modelMocks.destroy || function() {
             return new MockPromise([this]);
         };
+        m.prototype.set = modelMocks.set || function() {
+            return this;
+        }
+        m.prototype.toJSON = modelMocks.toJSON || function() {
+            return { name: 'mock toJSON() result' };
+        }
 
         return m;
     }

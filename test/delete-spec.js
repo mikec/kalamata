@@ -31,7 +31,7 @@ describe('DELETE request to delete an item', function() {
                 .toEqual({ id : '1' });
         });
 
-        it('should respond with the fetched model', function() {
+        it('should respond with true', function() {
             expect(this.mockResponse.send.calls.argsFor(0)[0])
                 .toEqual(true);
         });

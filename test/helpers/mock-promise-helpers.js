@@ -30,10 +30,9 @@ global.MockFailPromise = function(error) {
 };
 
 MockFailPromise.prototype.then = function() {
-    var err = this.error;
-    return {
-        catch: function(fn) {
-            fn(err);
-        }
-    };
+    return this;
+}
+
+MockFailPromise.prototype.catch = function(fn) {
+    fn(this.error);
 }
