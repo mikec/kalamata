@@ -2,7 +2,7 @@ describe('GET request for single item', function() {
 
     beforeEach(function() {
         this.mockApp = new MockApp();
-        this.k = require('../index')(this.mockApp);
+        this.k = requireKalamata()(this.mockApp);
     });
 
     describe('with an identifier for an item that exists', function() {

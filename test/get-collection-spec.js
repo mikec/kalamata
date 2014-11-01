@@ -2,7 +2,7 @@ describe('GET request for collection', function() {
 
     beforeEach(function() {
         this.mockApp = new MockApp();
-        this.k = require('../index')(this.mockApp);
+        this.k = requireKalamata()(this.mockApp);
     });
 
     describe('without any query params', function() {

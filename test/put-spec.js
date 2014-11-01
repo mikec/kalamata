@@ -2,7 +2,7 @@ describe('PUT request to update an item', function() {
 
     beforeEach(function() {
         this.mockApp = new MockApp();
-        this.k = require('../index')(this.mockApp);
+        this.k = requireKalamata()(this.mockApp);
     });
 
     describe('for an item that exists', function() {

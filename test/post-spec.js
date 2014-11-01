@@ -2,7 +2,7 @@ describe('POST request to create a new item', function() {
 
     beforeEach(function() {
         this.mockApp = new MockApp();
-        this.k = require('../index')(this.mockApp);
+        this.k = requireKalamata()(this.mockApp);
     });
 
     describe('and save succeeded', function() {

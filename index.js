@@ -18,7 +18,9 @@ kalamata.expose = function(model, _opts_) {
 
     var validOpts = {
         identifier: true,
-        endpointName: true
+        endpointName: true,
+        modelName: true,
+        collectionName: true
     };
 
     var hooks = {
@@ -39,11 +41,14 @@ kalamata.expose = function(model, _opts_) {
     }
     if(!opts.identifier) opts.identifier = 'id';
     if(!opts.endpointName) opts.endpointName = model.forge().tableName;
+    opts.collectionName = opts.collectionName ?
+                                capitalize(opts.collectionName) :
+                                collectionName(opts.endpointName);
+    opts.modelName = opts.modelName ?
+                                capitalize(opts.modelName) :
+                                modelName(opts.endpointName);
 
-    var chainer = {};
-    addHookChainers('before', chainer);
-    addHookChainers('after', chainer);
-
+    createHookFunctions();
     configureEndpoints();
 
     function configureEndpoints() {
@@ -224,33 +229,60 @@ kalamata.expose = function(model, _opts_) {
         };
     }
 
-    function addHookChainers(prefix, chainerObj) {
-        chainerObj[prefix] = hookFn(prefix);
-        chainerObj[prefix + 'Get'] = hookFn(prefix, 'get');
-        chainerObj[prefix + 'GetCollection'] = hookFn(prefix, 'getCollection');
-        chainerObj[prefix + 'Create'] = hookFn(prefix, 'create');
-        chainerObj[prefix + 'Update'] = hookFn(prefix, 'update');
-        chainerObj[prefix + 'Delete'] = hookFn(prefix, 'del');
+    function createHookFunctions() {
+        createHookFunction('beforeGet' + opts.collectionName,
+                                'before', 'getCollection');
+        createHookFunction('beforeGet' + opts.modelName, 'before', 'get');
+        createHookFunction('beforeCreate' + opts.modelName, 'before', 'create');
+        createHookFunction('beforeUpdate' + opts.modelName, 'before', 'update');
+        createHookFunction('beforeDelete' + opts.modelName, 'before', 'del');
+        createHookFunction('afterGet' + opts.collectionName,
+                                'after', 'getCollection');
+        createHookFunction('afterGet' + opts.modelName, 'after', 'get');
+        createHookFunction('afterCreate' + opts.modelName, 'after', 'create');
+        createHookFunction('afterUpdate' + opts.modelName, 'after', 'update');
+        createHookFunction('afterDelete' + opts.modelName, 'after', 'del');
+    }
+
+    function createHookFunction(fnName, prefix, type) {
+        kalamata[fnName] = hookFn(prefix, type);
     }
 
     function hookFn(prefix, type) {
         if(type) {
             return function(fn) {
                 hooks[prefix][type].push(fn);
-                return chainer;
+                //return {};
             };
         } else {
             return function(fn) {
                 for(var i in hooks[prefix]) {
                     hooks[prefix][i].push(fn);
                 }
-                return chainer;
+                //return {};
             };
         }
     }
 
     function sendResponse(response, sendData) {
         if(!response.headersSent) response.send(sendData);
+    }
+
+    function collectionName(endpointName) {
+        endpointName = capitalize(endpointName);
+        endpointName += (endpointName.slice(-1) == 's' ? '' : 'Collection');
+        return endpointName;
+    }
+
+    function modelName(endpointName) {
+        endpointName = (endpointName.slice(-1) == 's' ?
+                    endpointName.substr(0,endpointName.length - 1) :
+                    endpointName);
+        return capitalize(endpointName);
+    }
+
+    function capitalize(str) {
+        return str.charAt(0).toUpperCase() + str.slice(1);
     }
 
     function parseJSON(str) {
@@ -261,6 +293,6 @@ kalamata.expose = function(model, _opts_) {
         return str.replace(/(['"])?([a-zA-Z0-9_]+)(['"])?:/g, '"$2": ');
     }
 
-    return chainer;
+    return kalamata;
 
 };
