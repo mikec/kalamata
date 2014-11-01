@@ -252,14 +252,12 @@ kalamata.expose = function(model, _opts_) {
         if(type) {
             return function(fn) {
                 hooks[prefix][type].push(fn);
-                //return {};
             };
         } else {
             return function(fn) {
                 for(var i in hooks[prefix]) {
                     hooks[prefix][i].push(fn);
                 }
-                //return {};
             };
         }
     }
