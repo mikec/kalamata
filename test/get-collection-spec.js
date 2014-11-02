@@ -38,6 +38,37 @@ describe('GET request for collection', function() {
 
     });
 
+    describe('when fetchAll throws an error', function() {
+
+        beforeEach(function() {
+            this.mockModel = MockModel.get('items', {
+                fetchAll: function() {
+                    return new MockFailPromise([new Error('mock error')]);
+                }
+            });
+            this.k.expose(this.mockModel);
+            this.mockResponse = new MockResponse();
+            spyOn(this.mockResponse, 'send');
+            try {
+                this.mockApp.getHandlers['/items'](
+                    new MockRequest(),
+                    this.mockResponse
+                );
+            } catch(err) {
+                this.error = err;
+            }
+        });
+
+        it('should catch it and throw a \'Get Items failed\' error', function() {
+            expect(this.error.message).toEqual('Get Items failed');
+        });
+
+        it('should set the inner error', function() {
+            expect(this.error.inner).toBeDefined();
+        });
+
+    });
+
     describe('with the \'where\' query param', function() {
 
         describe('set to a valid JSON object', function() {
@@ -76,9 +107,12 @@ describe('GET request for collection', function() {
                 setupWhereQueryTests.call(this, '{firstname}');
             });
 
-            it('should send an error response', function() {
-                expect(this.mockResponse.send.calls.argsFor(0)[0])
-                    .toEqual("Error parsing JSON. '{firstname}' is not valid JSON");
+            it('should throw a \'Could not parse JSON\' error', function() {
+                expect(this.error.message).toEqual('Could not parse JSON: {firstname}');
+            });
+
+            it('should set the inner error', function() {
+                expect(this.error.inner.message).toEqual('Unexpected token f');
             });
 
         });
@@ -99,11 +133,15 @@ describe('GET request for collection', function() {
             this.k.expose(mockModel);
             this.mockResponse = new MockResponse();
             spyOn(this.mockResponse, 'send');
-            this.mockApp.getHandlers['/items'](new MockRequest({
-                query: {
-                    where: whereQueryVal
-                }
-            }), this.mockResponse);
+            try {
+                this.mockApp.getHandlers['/items'](new MockRequest({
+                    query: {
+                        where: whereQueryVal
+                    }
+                }), this.mockResponse);
+            } catch (err) {
+                this.error = err;
+            }
         }
 
     });

@@ -29,18 +29,17 @@ kalamata.expose = function(model, _opts_) {
     };
 
     var opts = {};
+    if(!opts.identifier) opts.identifier = 'id';
+    if(!opts.endpointName) opts.endpointName = model.forge().tableName;
+
     for(var p in _opts_) {
         if(validOpts[p]) {
             opts[p] = _opts_[p];
         } else {
-            throw new Error(
-                'Invalid option for endpoint ' +
-                opts.endpointName + ': ' + p
-            );
+            throw new Error('Invalid option: ' + p);
         }
     }
-    if(!opts.identifier) opts.identifier = 'id';
-    if(!opts.endpointName) opts.endpointName = model.forge().tableName;
+
     opts.collectionName = opts.collectionName ?
                                 capitalize(opts.collectionName) :
                                 collectionName(opts.endpointName);
@@ -60,10 +59,9 @@ kalamata.expose = function(model, _opts_) {
                 try {
                     w = parseJSON(req.query.where);
                 } catch(err) {
-                    console.log(err.stack);
-                    res.send('Error parsing JSON. \'' +
-                                req.query.where + '\' is not valid JSON');
-                    return;
+                    var e = new Error('Could not parse JSON: ' + req.query.where);
+                    e.inner = err;
+                    throw e;
                 }
                 m = new model().where(w);
             } else {
@@ -80,10 +78,9 @@ kalamata.expose = function(model, _opts_) {
                 return afterResult.promise || collection;
             }).then(function(collection) {
                 sendResponse(res, collection.toJSON());
-            }).catch(function(error) {
-                console.log(error.stack);
-                res.send('Error getting ' + opts.endpointName);
             });
+
+            catchError(promise, 'Get ' + opts.collectionName + ' failed');
         });
 
         app.get(options.apiRoot + opts.endpointName + '/:identifier',
@@ -98,20 +95,21 @@ kalamata.expose = function(model, _opts_) {
             var promise = beforeResult.promise || m.fetch();
             promise.then(function(m) {
                 if(!m) {
-                    throw new Error(
-                        'Error getting ' + opts.endpointName + '. ' +
+                    var e = new Error(
+                        'Get ' + opts.modelName + ' failed: ' +
                         opts.identifier + ' = ' + req.params.identifier +
                         ' not found'
                     );
+                    e.isInner = true;
+                    throw e;
                 }
                 var afterResult = runHooks(hooks.after.get, req, res, m);
                 return afterResult.promise || m;
             }).then(function(m) {
                 sendResponse(res, m);
-            }).catch(function(error) {
-                console.log(error.stack);
-                res.send('Error getting ' + opts.endpointName);
             });
+
+            catchError(promise, 'Get ' + opts.modelName + ' failed');
         });
 
         app.post(options.apiRoot + opts.endpointName, function(req, res) {
@@ -122,100 +120,121 @@ kalamata.expose = function(model, _opts_) {
 
             var promise = beforeResult.promise || m.save();
             promise.then(function(m) {
-                var afterResult = runHooks(hooks.after.create, req, res, m);
-                return afterResult.promise || m;
+                if(m) {
+                    var afterResult = runHooks(hooks.after.create, req, res, m);
+                    return afterResult.promise || m;
+                }
             }).then(function(m) {
-                sendResponse(res, m.toJSON());
-            }).catch(function(error) {
-                console.log(error.stack);
-                res.send(
-                    'Error saving ' + opts.endpointName + ' ' +
-                    JSON.stringify(req.body)
-                );
+                if(m) {
+                    sendResponse(res, m.toJSON());
+                }
             });
+
+            catchError(promise, 'Create ' + opts.modelName + ' ' +
+                                    JSON.stringify(req.body) + ' failed');
         });
 
         app.put(options.apiRoot + opts.endpointName + '/:identifier',
         function(req, res) {
             var modelAttrs = {};
             modelAttrs[opts.identifier] = req.params.identifier;
-            new model(modelAttrs).fetch().then(function(m) {
+            var promise = new model(modelAttrs).fetch().then(function(m) {
 
                 if(m) m.set(req.body);
                 var beforeResult = runHooks(hooks.before.update, req, res, m);
                 if(res.headersSent) return;
 
                 if(!m) {
-                    throw new Error(
-                        'Error updating ' + opts.endpointName + '. ' +
+                    var e = new Error(
+                        'Update ' + opts.modelName + ' failed: ' +
                         opts.identifier + ' = ' + req.params.identifier +
                         ' not found'
                     );
+                    e.isInner = true;
+                    throw e;
                 }
 
                 return beforeResult.promise || m.save();
             })
             .then(function(m) {
-                if(!m) return;
-                var afterResult = runHooks(hooks.after.update, req, res, m);
-                return afterResult.promise || m;
+                if(m) {
+                    var afterResult = runHooks(hooks.after.update, req, res, m);
+                    return afterResult.promise || m;
+                }
             }).then(function(m) {
-                if(!m) return;
-                sendResponse(res, m.toJSON());
-            }).catch(function(error) {
-                console.log(error.stack);
-                res.send('Error getting ' + opts.endpointName);
+                if(m) {
+                    sendResponse(res, m.toJSON());
+                }
             });
+
+            catchError(promise, 'Update ' + opts.modelName + ' failed');
         });
 
         app.delete(options.apiRoot + opts.endpointName + '/:identifier',
         function(req, res) {
             var modelAttrs = {};
             modelAttrs[opts.identifier] = req.params.identifier;
-            new model(modelAttrs).fetch().then(function(m) {
+            var promise = new model(modelAttrs).fetch().then(function(m) {
 
                 var beforeResult = runHooks(hooks.before.del, req, res, m);
                 if(res.headersSent) return;
 
                 if(!m) {
-                    throw new Error(
-                        'Error deleting ' + opts.endpointName + '. ' +
+                    var e = new Error(
+                        'Delete ' + opts.modelName + ' failed: ' +
                         opts.identifier + ' = ' + req.params.identifier +
                         ' not found'
                     );
+                    e.isInner = true;
+                    throw e;
                 }
 
                 return beforeResult.promise || m.destroy();
             })
             .then(function(m) {
-                var afterResult = runHooks(hooks.after.del, req, res, m);
-                return afterResult.promise || m;
-            }).then(function(m) {
+                if(m) {
+                    var afterResult = runHooks(hooks.after.del, req, res, m);
+                    return afterResult.promise || m;
+                }
+            }).then(function() {
                 sendResponse(res, true);
-            }).catch(function(error) {
-                console.log(error.stack);
-                res.send('Error deleting ' + opts.endpointName);
             });
+
+            catchError(promise, 'Delete ' + opts.modelName + ' failed');
+        });
+    }
+
+    function catchError(promise, message) {
+        promise.catch(function(err) {
+            var e;
+            if(err.isInner) {
+                e = err;
+            } else {
+                e = new Error(message);
+                e.inner = err;
+            }
+            throw e;
         });
     }
 
     function runHooks(fnArray, req, res, model, result) {
-        try {
-            var result;
-            for(var i in fnArray) {
-                result = fnArray[i](req, res, model, result);
+        var result;
+        for(var i in fnArray) {
+            var fn = fnArray[i];
+            try {
+                result = fn(req, res, model, result);
+            } catch(err) {
+                var e = err;
+                e.inner = new Error(fn.__name + ' failed');
+                throw e;
             }
-            if(result && result.then) {
-                return {
-                    promise: result
-                };
-            } else {
-                return {};
-            }
-        } catch(err) {
-            console.log(err.stack);
-            res.send('Error getting ' + opts.endpointName);
-            return true;
+        }
+        if(result && result.then) {
+            return {
+                promise: result
+            };
+        } else {
+            return {};
         }
     }
 
@@ -245,16 +264,18 @@ kalamata.expose = function(model, _opts_) {
     }
 
     function createHookFunction(fnName, prefix, type) {
-        kalamata[fnName] = hookFn(prefix, type);
+        kalamata[fnName] = hookFn(prefix, type, fnName);
     }
 
-    function hookFn(prefix, type) {
+    function hookFn(prefix, type, fnName) {
         if(type) {
             return function(fn) {
+                fn.__name = fnName;
                 hooks[prefix][type].push(fn);
             };
         } else {
             return function(fn) {
+                fn.__name = fnName;
                 for(var i in hooks[prefix]) {
                     hooks[prefix][i].push(fn);
                 }

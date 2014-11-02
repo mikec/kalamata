@@ -43,32 +43,28 @@ describe('DELETE request to delete an item', function() {
         beforeEach(function() {
             var $this = this;
             this.p = new MockPromise();
+            this.mockParams = { identifier: '1' };
             this.mockRequest = new MockRequest({
-                params: { identifier: '1' }
+                params: this.mockParams
             });
-            this.mockResponse = new MockResponse();
-            mockModel = MockModel.get('items', {
+            this.k.expose(MockModel.get('items', {
                 fetch: function() {
                     return $this.p;
                 }
-            });
-            spyOn(this.mockResponse, 'send');
-            this.k.expose(mockModel);
-            this.mockApp.deleteHandlers['/items/:identifier'](
-                this.mockRequest,
-                this.mockResponse
-            );
+            }));
+            try {
+                this.mockApp.deleteHandlers['/items/:identifier'](
+                    this.mockRequest,
+                    new MockResponse()
+                );
+            } catch(err) {
+                this.error = err;
+            }
         });
 
         it('should throw an error', function() {
-            expect(this.p.thrownError.message)
-                .toEqual('Error deleting items. id = ' +
-                    this.mockRequest.params.identifier + ' not found');
-        });
-
-        it('should respond with the fetched model', function() {
-            expect(this.mockResponse.send.calls.argsFor(0)[0])
-                .toEqual('Error deleting items');
+            expect(this.error.message).toBe('Delete Item failed: id = '
+                + this.mockParams.identifier + ' not found');
         });
 
     });

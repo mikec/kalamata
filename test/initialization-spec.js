@@ -42,6 +42,23 @@ describe('initializing', function() {
 
     });
 
+    describe('with invalid options', function() {
+
+        beforeEach(function() {
+            this.k = requireKalamata()(this.mockApp);
+            try {
+                this.k.expose(MockModel.get('items'), { mocked: 'invalid' });
+            } catch(err) {
+                this.error = err;
+            }
+        });
+
+        it('should throw an error', function() {
+            expect(this.error.message).toEqual('Invalid option: mocked');
+        });
+
+    });
+
     describe('with a plural table name', function() {
 
         beforeEach(function() {

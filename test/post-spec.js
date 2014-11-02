@@ -37,23 +37,28 @@ describe('POST request to create a new item', function() {
     describe('and save failed', function() {
 
         beforeEach(function() {
+            this.mockBody = { name: 'mock' };
             this.mockRequest = new MockRequest({
-                body: { name: 'mock' }
+                body: this.mockBody
             });
             this.k.expose(MockModel.get('items', {
                 save: function() {
                     return new MockFailPromise();
                 }
             }));
-            this.mockResponse = new MockResponse();
-            spyOn(this.mockResponse, 'send');
-            this.mockApp.postHandlers['/items'](this.mockRequest, this.mockResponse);
+            try {
+                this.mockApp.postHandlers['/items'](
+                    this.mockRequest,
+                    new MockResponse()
+                );
+            } catch(err) {
+                this.error = err;
+            }
         });
 
         it('should response with an error', function() {
-            expect(this.mockResponse.send.calls.argsFor(0)[0])
-                .toEqual('Error saving items ' +
-                            JSON.stringify(this.mockRequest.body));
+            expect(this.error.message).toEqual('Create Item ' +
+                    JSON.stringify(this.mockBody) + ' failed');
         });
 
     });

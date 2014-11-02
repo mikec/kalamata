@@ -56,8 +56,9 @@ describe('PUT request to update an item', function() {
         beforeEach(function() {
             var $this = this;
             this.p = new MockPromise();
+            this.mockParams = { identifier: '1' };
             this.mockRequest = new MockRequest({
-                params: { identifier: '1' }
+                params: this.mockParams
             });
             this.mockResponse = new MockResponse();
             spyOn(this.mockResponse, 'send');
@@ -66,21 +67,19 @@ describe('PUT request to update an item', function() {
                     return $this.p;
                 }
             }));
-            this.mockApp.putHandlers['/items/:identifier'](
-                this.mockRequest,
-                this.mockResponse
-            );
+            try {
+                this.mockApp.putHandlers['/items/:identifier'](
+                    this.mockRequest,
+                    this.mockResponse
+                );
+            } catch(err) {
+                this.error = err;
+            }
         });
 
         it('should throw an error', function() {
-            expect(this.p.thrownError.message)
-                .toEqual('Error updating items. id = ' +
-                    this.mockRequest.params.identifier + ' not found');
-        });
-
-        it('should respond with an error', function() {
-            expect(this.mockResponse.send.calls.argsFor(0)[0])
-                .toEqual('Error getting items');
+            expect(this.error.message).toBe('Update Item failed: id = '
+                + this.mockParams.identifier + ' not found');
         });
 
     });
