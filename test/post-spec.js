@@ -63,28 +63,94 @@ describe('POST request to create a new item', function() {
 
     });
 
-    /*describeTestsForHooks('post', '/items', [
-        {
-            hookType: 'before',
-            expect: [{ data: 'mock' }]
-        },
-        {
-            hookType: 'after',
-            expect: [{ type: 'MockModel' }]
-        },
-        {
-            hookType: 'beforeCreate',
-            expect: [{ data: 'mock' }]
-        },
-        {
-            hookType: 'afterCreate',
-            expect: [{ type: 'MockModel' }]
-        }
-    ]);
+    describe('with a before hook', function() {
 
-    describeTestsForHookError('before', 'post', '/items');
-    describeTestsForHookError('after', 'post', '/items');
-    describeTestsForHookError('beforeCreate', 'post', '/items');
-    describeTestsForHookError('afterCreate', 'post', '/items');*/
+        describe('that runs without executing any code', function() {
+
+            hookExecTest('before', 'CreateItem', '/items');
+
+            it('should pass model argument to the hook', function() {
+                expect(this.hookFn.calls.argsFor(0)[2])
+                    .toBe(this.mockModel.modelInstances[0]);
+            });
+
+            it('should call save', function() {
+                expect(this.mockSave).toHaveBeenCalled();
+            });
+
+        });
+
+        describe('that throws an error', function() {
+
+            hookErrorTest('before', 'CreateItem', '/items');
+
+            it('should not call save', function() {
+                expect(this.mockSave).not.toHaveBeenCalled();
+            });
+
+        });
+
+        describe('that sends a response', function() {
+
+            beforeEach(function() {
+                setupHook.call(
+                    this, 'before', 'CreateItem', '/items',
+                    function(req, res) {
+                        res.send(true);
+                    }
+                );
+            });
+
+            it('should not call save', function() {
+                expect(this.mockSave).not.toHaveBeenCalled();
+            });
+
+        });
+
+        describe('that returns a promise', function() {
+
+            hookPromiseTest('before', 'CreateItem', '/items');
+
+            it('should not call save', function() {
+                expect(this.mockSave).not.toHaveBeenCalled();
+            });
+
+        });
+
+    });
+
+    describe('with an after hook', function() {
+
+        describe('that runs without executing any code', function() {
+
+            hookExecTest('after', 'CreateItem', '/items');
+
+            beforeEach(function() {
+                setupHook.call(
+                    this, 'after', 'CreateItem', '/items',
+                    function() {}
+                );
+            });
+
+            it('should pass the result of save to the hook', function() {
+                expect(this.hookFn.calls.argsFor(0)[2])
+                    .toBe(this.mockSaveResult);
+            });
+
+        });
+
+        describe('that throws an error', function() {
+            hookErrorTest('after', 'CreateItem', '/items');
+        });
+
+        describe('that sends a response', function() {
+            singleResponseHookTest('after', 'CreateItem', '/items');
+        });
+
+        describe('that returns a promise', function() {
+            hookPromiseTest('after', 'CreateItem', '/items');
+        });
+
+    });
 
 });

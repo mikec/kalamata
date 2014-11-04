@@ -83,18 +83,24 @@ global.setupHook = function(prefix, postfix, endpoint, fn) {
             this.mockFetchAllResult =
                     ['one', 'two', 'three'];
     var mockFetchResult = this.mockFetchResult = 'one';
+    var mockSaveResult = this.mockSaveResult = 'two';
     this.mockFetchAll = function() {
         return new MockPromise([mockFetchAllResult]);
     };
     this.mockFetch = function() {
         return new MockPromise([mockFetchResult]);
     };
+    this.mockSave = function() {
+        return new MockPromise([mockSaveResult]);
+    };
     spyOn(this, 'hookFn').and.callThrough();
     spyOn(this, 'mockFetchAll').and.callThrough();
     spyOn(this, 'mockFetch').and.callThrough();
+    spyOn(this, 'mockSave').and.callThrough();
     this.mockModel = MockModel.get('items', {
         fetchAll: this.mockFetchAll,
-        fetch: this.mockFetch
+        fetch: this.mockFetch,
+        save: this.mockSave
     });
     this.k.expose(this.mockModel);
     this.k[this.hookFnName](this.hookFn);
@@ -102,11 +108,19 @@ global.setupHook = function(prefix, postfix, endpoint, fn) {
     this.mockRes = new MockResponse();
     spyOn(this.mockRes, 'send').and.callThrough();
     try {
-        this.mockApp.getHandlers[endpoint](
+        this.mockApp[mockHandlerIndex[postfix]+'Handlers'][endpoint](
             this.mockReq,
             this.mockRes
         );
     } catch(err) {
         this.error = err;
     }
+};
+
+var mockHandlerIndex = {
+    'GetItems': 'get',
+    'GetItem': 'get',
+    'CreateItem': 'post',
+    'UpdateItem': 'put',
+    'DeleteItem': 'delete'
 };
