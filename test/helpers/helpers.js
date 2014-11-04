@@ -1,6 +1,4 @@
 
-console.log = function() { };
-
 global.requireKalamata = function() {
     deleteFromRequireCache('kalamata/index.js');
     return require('../../index.js');

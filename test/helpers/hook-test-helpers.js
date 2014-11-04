@@ -81,9 +81,11 @@ global.setupHook = function(prefix, postfix, endpoint, fn) {
     this.hookFnName = prefix + postfix;
     var mockFetchAllResult =
             this.mockFetchAllResult =
-                    ['one', 'two', 'three'];
-    var mockFetchResult = this.mockFetchResult = 'one';
-    var mockSaveResult = this.mockSaveResult = 'two';
+                    [new (MockModel.get('items'))(),
+                     new (MockModel.get('items'))(),
+                     new (MockModel.get('items'))()];
+    var mockFetchResult = this.mockFetchResult = new (MockModel.get('items'))();
+    var mockSaveResult = this.mockSaveResult = new (MockModel.get('items'))();
     this.mockFetchAll = function() {
         return new MockPromise([mockFetchAllResult]);
     };
@@ -97,6 +99,7 @@ global.setupHook = function(prefix, postfix, endpoint, fn) {
     spyOn(this, 'mockFetchAll').and.callThrough();
     spyOn(this, 'mockFetch').and.callThrough();
     spyOn(this, 'mockSave').and.callThrough();
+    spyOn(this.mockFetchResult, 'save').and.returnValue(this.mockFetchResult);
     this.mockModel = MockModel.get('items', {
         fetchAll: this.mockFetchAll,
         fetch: this.mockFetch,

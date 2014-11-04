@@ -84,28 +84,94 @@ describe('PUT request to update an item', function() {
 
     });
 
-    /*describeTestsForHooks('put', '/items/:identifier', [
-        {
-            hookType: 'before',
-            expect: ['1', { data: 'mock' }]
-        },
-        {
-            hookType: 'after',
-            expect: [{ type: 'MockModel' }]
-        },
-        {
-            hookType: 'beforeUpdate',
-            expect: ['1', { data: 'mock' }]
-        },
-        {
-            hookType: 'afterUpdate',
-            expect: [{ type: 'MockModel' }]
-        }
-    ]);
+    describe('with a before hook', function() {
 
-    describeTestsForHookError('before', 'put', '/items/:identifier');
-    describeTestsForHookError('after', 'put', '/items/:identifier');
-    describeTestsForHookError('beforeUpdate', 'put', '/items/:identifier');
-    describeTestsForHookError('afterUpdate', 'put', '/items/:identifier');*/
+        describe('that runs without executing any code', function() {
+
+            hookExecTest('before', 'UpdateItem', '/items/:identifier');
+
+            it('should pass the fetch result argument to the hook', function() {
+                expect(this.hookFn.calls.argsFor(0)[2])
+                    .toBe(this.mockFetchResult);
+            });
+
+            it('should call save on the fetch result', function() {
+                expect(this.mockFetchResult.save).toHaveBeenCalled();
+            });
+
+        });
+
+        describe('that throws an error', function() {
+
+            hookErrorTest('before', 'UpdateItem', '/items/:identifier');
+
+            it('should not call save on the fetch result', function() {
+                expect(this.mockFetchResult.save).not.toHaveBeenCalled();
+            });
+
+        });
+
+        describe('that sends a response', function() {
+
+            beforeEach(function() {
+                setupHook.call(
+                    this, 'before', 'UpdateItem', '/items/:identifier',
+                    function(req, res) {
+                        res.send(true);
+                    }
+                );
+            });
+
+            it('should not call save on the fetch result', function() {
+                expect(this.mockFetchResult.save).not.toHaveBeenCalled();
+            });
+
+        });
+
+        describe('that returns a promise', function() {
+
+            hookPromiseTest('before', 'UpdateItem', '/items/:identifier');
+
+            it('should not call save on the fetch result', function() {
+                expect(this.mockFetchResult.save).not.toHaveBeenCalled();
+            });
+
+        });
+
+    });
+
+    describe('with an after hook', function() {
+
+       describe('that runs without executing any code', function() {
+
+            hookExecTest('after', 'UpdateItem', '/items/:identifier');
+
+            beforeEach(function() {
+                setupHook.call(
+                    this, 'after', 'UpdateItem', '/items/:identifier',
+                    function() {}
+                );
+            });
+
+            it('should pass the fetch result to the hook', function() {
+                expect(this.hookFn.calls.argsFor(0)[2])
+                    .toBe(this.mockFetchResult);
+            });
+
+        });
+
+        describe('that throws an error', function() {
+            hookErrorTest('after', 'UpdateItem', '/items/:identifier');
+        });
+
+        describe('that sends a response', function() {
+            singleResponseHookTest('after', 'UpdateItem', '/items/:identifier');
+        });
+
+        describe('that returns a promise', function() {
+            hookPromiseTest('after', 'UpdateItem', '/items/:identifier');
+        });
+
+    });
 
 });
