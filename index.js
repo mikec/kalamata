@@ -225,6 +225,7 @@ kalamata.expose = function(model, _opts_) {
                 result = fn(req, res, model, result);
             } catch(err) {
                 var e = err;
+                e.isInner = true;
                 e.inner = new Error(fn.__name + ' failed');
                 throw e;
             }

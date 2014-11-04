@@ -1,4 +1,9 @@
 
-global.MockResponse = function() {
-    this.send = function() {};
+global.MockResponse = MockResponse = function() {
+    this.headersSent = false;
 };
+
+MockResponse.prototype.send = function() {
+    this.headersSent = true;
+};
+
