@@ -129,9 +129,7 @@ describe('GET request for single item', function() {
             beforeEach(function() {
                 setupHook.call(
                     this, 'before', 'GetItem', '/items/:identifier',
-                    function(req, res) {
-                        res.send(true);
-                    }
+                    function(req, res) { res.send(true); }
                 );
             });
 
@@ -158,13 +156,6 @@ describe('GET request for single item', function() {
         describe('that runs without executing any code', function() {
 
             hookExecTest('after', 'GetItem', '/items/:identifier');
-
-            beforeEach(function() {
-                setupHook.call(
-                    this, 'after', 'GetItem', '/items/:identifier',
-                    function() {}
-                );
-            });
 
             it('should pass the result of fetch to the hook', function() {
                 expect(this.hookFn.calls.argsFor(0)[2])

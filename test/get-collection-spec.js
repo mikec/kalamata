@@ -172,9 +172,7 @@ describe('GET request for collection', function() {
             beforeEach(function() {
                 setupHook.call(
                     this, 'before', 'GetItems', '/items',
-                    function(req, res) {
-                        res.send(true);
-                    }
+                    function(req, res) { res.send(true); }
                 );
             });
 

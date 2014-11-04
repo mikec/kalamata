@@ -116,9 +116,7 @@ describe('PUT request to update an item', function() {
             beforeEach(function() {
                 setupHook.call(
                     this, 'before', 'UpdateItem', '/items/:identifier',
-                    function(req, res) {
-                        res.send(true);
-                    }
+                    function(req, res) { res.send(true); }
                 );
             });
 
@@ -145,13 +143,6 @@ describe('PUT request to update an item', function() {
        describe('that runs without executing any code', function() {
 
             hookExecTest('after', 'UpdateItem', '/items/:identifier');
-
-            beforeEach(function() {
-                setupHook.call(
-                    this, 'after', 'UpdateItem', '/items/:identifier',
-                    function() {}
-                );
-            });
 
             it('should pass the fetch result to the hook', function() {
                 expect(this.hookFn.calls.argsFor(0)[2])

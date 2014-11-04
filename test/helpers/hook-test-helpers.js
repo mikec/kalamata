@@ -100,6 +100,7 @@ global.setupHook = function(prefix, postfix, endpoint, fn) {
     spyOn(this, 'mockFetch').and.callThrough();
     spyOn(this, 'mockSave').and.callThrough();
     spyOn(this.mockFetchResult, 'save').and.returnValue(this.mockFetchResult);
+    spyOn(this.mockFetchResult, 'destroy').and.returnValue(this.mockFetchResult);
     this.mockModel = MockModel.get('items', {
         fetchAll: this.mockFetchAll,
         fetch: this.mockFetch,

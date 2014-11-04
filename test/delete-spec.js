@@ -69,4 +69,85 @@ describe('DELETE request to delete an item', function() {
 
     });
 
+    describe('with a before hook', function() {
+
+        describe('that runs without executing any code', function() {
+
+            hookExecTest('before', 'DeleteItem', '/items/:identifier');
+
+            it('should pass the fetch result argument to the hook', function() {
+                expect(this.hookFn.calls.argsFor(0)[2])
+                    .toBe(this.mockFetchResult);
+            });
+
+            it('should call destroy on the fetch result', function() {
+                expect(this.mockFetchResult.destroy).toHaveBeenCalled();
+            });
+
+        });
+
+        describe('that throws an error', function() {
+
+            hookErrorTest('before', 'DeleteItem', '/items/:identifier');
+
+            it('should not call destroy on the fetch result', function() {
+                expect(this.mockFetchResult.destroy).not.toHaveBeenCalled();
+            });
+
+        });
+
+        describe('that sends a response', function() {
+
+            beforeEach(function() {
+                setupHook.call(
+                    this, 'before', 'DeleteItem', '/items/:identifier',
+                    function(req, res) { res.send(true); }
+                );
+            });
+
+            it('should not call destroy on the fetch result', function() {
+                expect(this.mockFetchResult.destroy).not.toHaveBeenCalled();
+            });
+
+        });
+
+        describe('that returns a promise', function() {
+
+            hookPromiseTest('before', 'DeleteItem', '/items/:identifier');
+
+            it('should not call destroy on the fetch result', function() {
+                expect(this.mockFetchResult.destroy).not.toHaveBeenCalled();
+            });
+
+        });
+
+    });
+
+    describe('with an after hook', function() {
+
+       describe('that runs without executing any code', function() {
+
+            hookExecTest('after', 'DeleteItem', '/items/:identifier');
+
+            it('should pass the fetch result to the hook', function() {
+                expect(this.hookFn.calls.argsFor(0)[2])
+                    .toBe(this.mockFetchResult);
+            });
+
+        });
+
+        describe('that throws an error', function() {
+            hookErrorTest('after', 'DeleteItem', '/items/:identifier');
+        });
+
+        describe('that sends a response', function() {
+            singleResponseHookTest('after', 'DeleteItem', '/items/:identifier');
+        });
+
+        describe('that returns a promise', function() {
+            hookPromiseTest('after', 'DeleteItem', '/items/:identifier');
+        });
+
+    });
+
 });
