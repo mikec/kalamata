@@ -8,7 +8,10 @@ MockPromise.prototype.then = function(fn) {
     if(!this.nextPromise) this.nextPromise = new MockPromise(this.args);
     if(!this.thrownError && fn) {
         try {
-            fn.apply(null, this.args);
+            var returnVal = fn.apply(null, this.args);
+            if(returnVal && returnVal instanceof MockPromise) {
+                this.nextPromise = returnVal;
+            }
         } catch(thrownError) {
             this.thrownError = thrownError;
             this.nextPromise.thrownError = thrownError;

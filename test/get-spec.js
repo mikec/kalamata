@@ -97,28 +97,94 @@ describe('GET request for single item', function() {
 
     });
 
-    /*describeTestsForHooks('get', '/items/:identifier', [
-        {
-            hookType: 'before',
-            expect: ['1']
-        },
-        {
-            hookType: 'after',
-            expect: [{ type: 'MockModel' }]
-        },
-        {
-            hookType: 'beforeGet',
-            expect: ['1']
-        },
-        {
-            hookType: 'afterGet',
-            expect: [{ type: 'MockModel' }]
-        }
-    ]);
+    describe('with a before hook', function() {
 
-    describeTestsForHookError('before', 'get', '/items/:identifier');
-    describeTestsForHookError('after', 'get', '/items/:identifier');
-    describeTestsForHookError('beforeGet', 'get', '/items/:identifier');
-    describeTestsForHookError('afterGet', 'get', '/items/:identifier');*/
+        describe('that runs without executing any code', function() {
+
+            hookExecTest('before', 'GetItem', '/items/:identifier');
+
+            it('should pass model argument to the hook', function() {
+                expect(this.hookFn.calls.argsFor(0)[2])
+                    .toBe(this.mockModel.modelInstances[0]);
+            });
+
+            it('should call fetch', function() {
+                expect(this.mockFetch).toHaveBeenCalled();
+            });
+
+        });
+
+        describe('that throws an error', function() {
+
+            hookErrorTest('before', 'GetItem', '/items/:identifier');
+
+            it('should not call fetch', function() {
+                expect(this.mockFetch).not.toHaveBeenCalled();
+            });
+
+        });
+
+        describe('that sends a response', function() {
+
+            beforeEach(function() {
+                setupHook.call(
+                    this, 'before', 'GetItem', '/items/:identifier',
+                    function(req, res) {
+                        res.send(true);
+                    }
+                );
+            });
+
+            it('should not call fetch', function() {
+                expect(this.mockFetch).not.toHaveBeenCalled();
+            });
+
+        });
+
+        describe('that returns a promise', function() {
+
+            hookPromiseTest('before', 'GetItem', '/items/:identifier');
+
+            it('should not call fetch', function() {
+                expect(this.mockFetch).not.toHaveBeenCalled();
+            });
+
+        });
+
+    });
+
+    describe('with an after hook', function() {
+
+        describe('that runs without executing any code', function() {
+
+            hookExecTest('after', 'GetItem', '/items/:identifier');
+
+            beforeEach(function() {
+                setupHook.call(
+                    this, 'after', 'GetItem', '/items/:identifier',
+                    function() {}
+                );
+            });
+
+            it('should pass the result of fetch to the hook', function() {
+                expect(this.hookFn.calls.argsFor(0)[2])
+                    .toBe(this.mockFetchResult);
+            });
+
+        });
+
+        describe('that throws an error', function() {
+            hookErrorTest('after', 'GetItem', '/items/:identifier');
+        });
+
+        describe('that sends a response', function() {
+            singleResponseHookTest('after', 'GetItem', '/items/:identifier');
+        });
+
+        describe('that returns a promise', function() {
+            hookPromiseTest('after', 'GetItem', '/items/:identifier');
+        });
+
+    });
 
 });
