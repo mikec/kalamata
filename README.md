@@ -50,15 +50,38 @@ which will create these endpoints
 
 ### Extending the default endpoints
 
-You can extend the endpoints that Kalamata creates by using `before` and `after` hooks. A few examples:
+You can extend the default endpoints by modifying data before or after it is saved, using `before` and `after` hooks. These give you access to the Express request and response objects, and the Bookshelf model instance.
 
-#### Preventing unauthorized data access
+Some examples:
 
 ```js
+/*
+ * function executes on PUT `/users/:id`
+ * before updated user data is saved
+ */
+api.beforeUpdateUser(function(req, res, user) {
+    // set a propety before user is saved
+    user.set('updated_on', Date.now());
+});
 
+```
+
+```js
+/*
+ * function executes on GET `/users`
+ * before the collection of users is fetched
+ */
+api.beforeGetUsers(function(req, res, user) {
+    // add a where clause to execute when fetching users
+    user.where({ deleted:false });
+});
+
+```
+
+```js
 /*
  * function executes on GET `/users/:id`
- * after user is fetched
+ * after a user is fetched
  */
 api.afterGetUser(function(req, res, user) {
     if(!isAuthenticatedUser(user)) {
@@ -67,50 +90,6 @@ api.afterGetUser(function(req, res, user) {
     }
 });
 
-```
-
-#### Adding data before save
-
-```js
-
-/*
- * function executes on PUT `/users/:id`
- * before updated user data is saved
- */
-api.beforeUpdateUser(function(req, res, user) {
-    // set a new propety before user is saved
-    user.set('updated_on', Date.now());
-});
-```
-
-#### Override default delete behavior
-
-```js
-/*
- * function executes on DELETE `/users/:id`
- * before user is deleted
- */
-api.beforeDeleteUser(function(req, res, user) {
-    /*
-     * because user.save() returns a promise,
-     * this will be executed instead of the default
-     * delete behavior
-     */
-    return user.save({ deleted: true });
-});
-```
-
-#### Modify the query to get users
-
-```js
-/*
- * function executes on GET `/users`
- * before users are fetched
- */
-api.beforeGetUsers(function(req, res, user) {
-    // add a where clause to execute when users are fetched
-    user.where({ deleted:false });
-});
 ```
 
 Configuring the API
