@@ -3,6 +3,8 @@ Kalamata
 
 Fully extensible Node.js REST API framework for [Bookshelf.js](http://bookshelfjs.org/) and [Express](http://expressjs.com/)
 
+[![Build Status](https://travis-ci.org/mikec/kalamata.svg?branch=master)](https://travis-ci.org/mikec/kalamata)
+
 Install
 -----------
 `cd` into your project and `npm install kalamata`
