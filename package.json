@@ -29,5 +29,8 @@
   },
   "dependencies": {
     "body-parser": "^1.9.0"
+  },
+  "scripts": {
+    "test": "grunt"
   }
 }
