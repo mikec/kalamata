@@ -1,7 +1,7 @@
 
 global.requireKalamata = function() {
-    deleteFromRequireCache('kalamata/index.js');
-    return require('../../index.js');
+    deleteFromRequireCache('kalamata/src/index.js');
+    return require('../../src/index.js');
 }
 
 global.deleteFromRequireCache = function(filePath) {
