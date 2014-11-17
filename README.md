@@ -12,9 +12,11 @@ Install
 What it is
 -----------
 
-Kalamata helps you build RESTful web service APIs for your Bookshelf.js models. It works with Express.
+Kalamata helps you build REST APIs that run on Express. It creates some standard CRUD endpoints for you, and allows you to extend these with your application specific logic.
 
-Lets say you have a model called `User`
+### How it works
+
+Lets say you have a Bookshelf model called `User`
 
 ```js
 var User = bookshelf.Model.extend({
