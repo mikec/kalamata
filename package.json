@@ -32,5 +32,6 @@
   },
   "scripts": {
     "test": "grunt"
-  }
+  },
+  "main": "src/index.js"
 }
