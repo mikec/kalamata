@@ -53,7 +53,7 @@ kalamata.expose = function(model, _opts_) {
     function configureEndpoints() {
 
         app.get(options.apiRoot + opts.endpointName, function(req, res) {
-            var m;
+            var mod;
             if(req.query.where) {
                 var w;
                 try {
@@ -63,15 +63,15 @@ kalamata.expose = function(model, _opts_) {
                     e.inner = err;
                     throw e;
                 }
-                m = new model().where(w);
+                mod = new model().where(w);
             } else {
-                m = new model();
+                mod = new model();
             }
 
-            var beforeResult = runHooks(hooks.before.getCollection, req, res, m);
+            var beforeResult = runHooks(hooks.before.getCollection, req, res, mod);
             if(res.headersSent) return;
 
-            var promise = beforeResult.promise || m.fetchAll();
+            var promise = beforeResult.promise || mod.fetchAll();
             var promiseResult = promise.then(function(collection) {
                 var afterResult = runHooks(
                                     hooks.after.getCollection, req, res, collection);
@@ -87,12 +87,12 @@ kalamata.expose = function(model, _opts_) {
         function(req, res) {
             var modelAttrs = {};
             modelAttrs[opts.identifier] = req.params.identifier;
-            var m = new model(modelAttrs);
+            var mod = new model(modelAttrs);
 
-            var beforeResult = runHooks(hooks.before.get, req, res, m);
+            var beforeResult = runHooks(hooks.before.get, req, res, mod);
             if(res.headersSent) return;
 
-            var promise = beforeResult.promise || m.fetch();
+            var promise = beforeResult.promise || mod.fetch();
             var promiseResult = promise.then(function(m) {
                 if(!m) {
                     var e = new Error(
@@ -113,12 +113,12 @@ kalamata.expose = function(model, _opts_) {
         });
 
         app.post(options.apiRoot + opts.endpointName, function(req, res) {
-            var m = new model(req.body);
+            var mod = new model(req.body);
 
-            var beforeResult = runHooks(hooks.before.create, req, res, m);
+            var beforeResult = runHooks(hooks.before.create, req, res, mod);
             if(res.headersSent) return;
 
-            var promise = beforeResult.promise || m.save();
+            var promise = beforeResult.promise || mod.save();
             var promiseResult = promise.then(function(m) {
                 if(m) {
                     var afterResult = runHooks(hooks.after.create, req, res, m);
@@ -190,8 +190,7 @@ kalamata.expose = function(model, _opts_) {
                 }
 
                 return beforeResult.promise || m.destroy();
-            })
-            .then(function(m) {
+            }).then(function(m) {
                 if(m) {
                     var afterResult = runHooks(hooks.after.del, req, res, m);
                     return afterResult.promise || m;
