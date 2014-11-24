@@ -28,6 +28,9 @@ global.MockModel = {
         m.prototype.load = modelMocks.load || function() {
             return new MockPromise([this]);
         };
+        m.prototype.related = modelMocks.related || function() {
+            return new MockPromise([ this, this, this ]);
+        };
         m.prototype.save = modelMocks.save || function() {
             return new MockPromise([this]);
         };
