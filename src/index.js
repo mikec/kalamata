@@ -81,9 +81,7 @@ kalamata.expose = function(model, _opts_) {
 
         app.get(options.apiRoot + opts.endpointName + '/:identifier',
         function(req, res, next) {
-            var modelAttrs = {};
-            modelAttrs[opts.identifier] = req.params.identifier;
-            var mod = new model(modelAttrs);
+            var mod = new model(getModelAttrs(req));
 
             var beforeResult = runHooks(hooks.before.get, req, res, mod);
             if(res.headersSent) return;
@@ -102,6 +100,16 @@ kalamata.expose = function(model, _opts_) {
                 return afterResult.promise || m;
             }).then(function(m) {
                 sendResponse(res, m);
+            }).catch(next);
+        });
+
+        app.get(options.apiRoot + opts.endpointName + '/:identifier/:relation',
+        function(req, res, next) {
+            var mod = new model(getModelAttrs(req));
+            mod.fetch({ withRelated: req.params.relation }).then(function(m) {
+                return m.related(req.params.relation);
+            }).then(function(related) {
+                sendResponse(res, related);
             }).catch(next);
         });
 
@@ -126,9 +134,7 @@ kalamata.expose = function(model, _opts_) {
 
         app.put(options.apiRoot + opts.endpointName + '/:identifier',
         function(req, res, next) {
-            var modelAttrs = {};
-            modelAttrs[opts.identifier] = req.params.identifier;
-            var promiseResult = new model(modelAttrs).fetch().then(function(m) {
+            var promiseResult = new model(getModelAttrs(req)).fetch().then(function(m) {
 
                 if(m) m.set(req.body);
                 var beforeResult = runHooks(hooks.before.update, req, res, m);
@@ -158,9 +164,7 @@ kalamata.expose = function(model, _opts_) {
 
         app.delete(options.apiRoot + opts.endpointName + '/:identifier',
         function(req, res, next) {
-            var modelAttrs = {};
-            modelAttrs[opts.identifier] = req.params.identifier;
-            var promiseResult = new model(modelAttrs).fetch().then(function(m) {
+            var promiseResult = new model(getModelAttrs(req)).fetch().then(function(m) {
 
                 var beforeResult = runHooks(hooks.before.del, req, res, m);
                 if(res.headersSent) return;
@@ -242,6 +246,15 @@ kalamata.expose = function(model, _opts_) {
                 }
             };
         }
+    }
+
+    function getModelAttrs(req) {
+        var attrs;
+        if(req.params.identifier) {
+            attrs = {};
+            attrs[opts.identifier] = req.params.identifier;
+        }
+        return attrs;
     }
 
     function getFetchParams(req) {
