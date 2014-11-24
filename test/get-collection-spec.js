@@ -138,6 +138,35 @@ describe('GET request for collection', function() {
 
     });
 
+    describe('with a \'load\' query param', function() {
+
+        beforeEach(function() {
+            this.mockFetchAllFn = function() {};
+            spyOn(this, 'mockFetchAllFn').and.returnValue(new MockPromise());
+            this.mockModel = MockModel.get('items', {
+                fetchAll: this.mockFetchAllFn
+            });
+            this.k.expose(this.mockModel);
+            this.mockApp.getHandlers['/items'](
+                new MockRequest({
+                    query: {
+                        load: 'users,things'
+                    }
+                }),
+                new MockResponse()
+            );
+        });
+
+        it('should call load and pass an array of relations', function() {
+            expect(this.mockFetchAllFn).toHaveBeenCalled();
+            expect(this.mockFetchAllFn.calls.argsFor(0)[0])
+                    .toEqual({
+                        withRelated: ['users', 'things']
+                    });
+        });
+
+    });
+
     describe('with a before hook', function() {
 
         describe('that runs without executing any code', function() {

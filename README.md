@@ -172,6 +172,12 @@ Gets an array of users
 
 Expects the same parameters as the [bookshelf.js where method](http://bookshelfjs.org/#Model-where)
 
+##### `load` parameter will load related models and include them in the response
+
+`/users?load=orders,favorites`
+
+Expects a comma delimited string of relations. Calls the [bookshelf.js load method](http://bookshelfjs.org/#Model-load) method with an array of relations.
+
 
 
 #### GET `/users/:identifier`
@@ -187,6 +193,12 @@ Gets a user
 { "id": 2, "name": "user2" }
 
 ```
+
+##### `load` parameter will load related models and include them in the response
+
+`/user/2?load=orders,favorites`
+
+Expects a comma delimited string of relations. Calls the [bookshelf.js load method](http://bookshelfjs.org/#Model-load) method with an array of relations.
 
 #### POST `/users`
 

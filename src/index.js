@@ -69,7 +69,7 @@ kalamata.expose = function(model, _opts_) {
             var beforeResult = runHooks(hooks.before.getCollection, req, res, mod);
             if(res.headersSent) return;
 
-            var promise = beforeResult.promise || mod.fetchAll();
+            var promise = beforeResult.promise || mod.fetchAll(getFetchParams(req));
             promise.then(function(collection) {
                 var afterResult = runHooks(
                                     hooks.after.getCollection, req, res, collection);
@@ -88,7 +88,7 @@ kalamata.expose = function(model, _opts_) {
             var beforeResult = runHooks(hooks.before.get, req, res, mod);
             if(res.headersSent) return;
 
-            var promise = beforeResult.promise || mod.fetch();
+            var promise = beforeResult.promise || mod.fetch(getFetchParams(req));
             promise.then(function(m) {
                 if(!m) {
                     throw new Error(
@@ -97,6 +97,7 @@ kalamata.expose = function(model, _opts_) {
                         ' not found'
                     );
                 }
+
                 var afterResult = runHooks(hooks.after.get, req, res, m);
                 return afterResult.promise || m;
             }).then(function(m) {
@@ -241,6 +242,11 @@ kalamata.expose = function(model, _opts_) {
                 }
             };
         }
+    }
+
+    function getFetchParams(req) {
+        return req.query.load ?
+                    { withRelated: req.query.load.split(',') } : null;
     }
 
     function sendResponse(response, sendData) {

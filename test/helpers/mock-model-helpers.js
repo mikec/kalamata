@@ -25,6 +25,9 @@ global.MockModel = {
         m.prototype.where = modelMocks.where || function() {
             return this;
         };
+        m.prototype.load = modelMocks.load || function() {
+            return new MockPromise([this]);
+        };
         m.prototype.save = modelMocks.save || function() {
             return new MockPromise([this]);
         };

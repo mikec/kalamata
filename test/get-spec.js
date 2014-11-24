@@ -33,6 +33,35 @@ describe('GET request for single item', function() {
 
     });
 
+    describe('with a \'load\' query param', function() {
+
+        beforeEach(function() {
+            this.mockFetchFn = function() {};
+            spyOn(this, 'mockFetchFn').and.returnValue(new MockPromise());
+            this.mockModel = MockModel.get('items', {
+                fetch: this.mockFetchFn
+            });
+            this.k.expose(this.mockModel);
+            this.mockApp.getHandlers['/items/:identifier'](
+                new MockRequest({
+                    query: {
+                        load: 'users,things'
+                    }
+                }),
+                new MockResponse()
+            );
+        });
+
+        it('should call load and pass an array of relations', function() {
+            expect(this.mockFetchFn).toHaveBeenCalled();
+            expect(this.mockFetchFn.calls.argsFor(0)[0])
+                    .toEqual({
+                        withRelated: ['users', 'things']
+                    });
+        });
+
+    });
+
     describe('with an identifier for an item that does not exist', function() {
 
         beforeEach(function() {
