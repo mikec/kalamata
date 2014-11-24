@@ -5,7 +5,7 @@ describe('GET request for a relation', function() {
         this.k = requireKalamata()(this.mockApp);
     });
 
-    describe('without any query params', function() {
+    describe('for a model that exists', function() {
 
         beforeEach(function() {
             var $this = this;
