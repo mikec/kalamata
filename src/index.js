@@ -88,14 +88,8 @@ kalamata.expose = function(model, _opts_) {
 
             var promise = beforeResult.promise || mod.fetch(getFetchParams(req));
             promise.then(function(m) {
-                if(!m) {
-                    throw new Error(
-                        'Get ' + opts.modelName + ' failed: ' +
-                        opts.identifier + ' = ' + req.params.identifier +
-                        ' not found'
-                    );
-                }
-
+                return checkModelFetchSuccess(req, m);
+            }).then(function(m) {
                 var afterResult = runHooks(hooks.after.get, req, res, m);
                 return afterResult.promise || m;
             }).then(function(m) {
@@ -107,6 +101,8 @@ kalamata.expose = function(model, _opts_) {
         function(req, res, next) {
             var mod = new model(getModelAttrs(req));
             mod.fetch({ withRelated: req.params.relation }).then(function(m) {
+                return checkModelFetchSuccess(req, m);
+            }).then(function(m) {
                 return m.related(req.params.relation);
             }).then(function(related) {
                 sendResponse(res, related);
@@ -135,18 +131,12 @@ kalamata.expose = function(model, _opts_) {
         app.put(options.apiRoot + opts.endpointName + '/:identifier',
         function(req, res, next) {
             var promiseResult = new model(getModelAttrs(req)).fetch().then(function(m) {
+                return checkModelFetchSuccess(req, m);
+            }).then(function(m) {
 
                 if(m) m.set(req.body);
                 var beforeResult = runHooks(hooks.before.update, req, res, m);
                 if(res.headersSent) return;
-
-                if(!m) {
-                    throw new Error(
-                        'Update ' + opts.modelName + ' failed: ' +
-                        opts.identifier + ' = ' + req.params.identifier +
-                        ' not found'
-                    );
-                }
 
                 return beforeResult.promise || m.save();
             })
@@ -246,6 +236,17 @@ kalamata.expose = function(model, _opts_) {
                 }
             };
         }
+    }
+
+    function checkModelFetchSuccess(req, m) {
+        if(!m) {
+            throw new Error(
+                req.method + ' ' + req.url + ' failed: ' +
+                opts.identifier + ' = ' + req.params.identifier +
+                ' not found'
+            );
+        }
+        return m;
     }
 
     function getModelAttrs(req) {

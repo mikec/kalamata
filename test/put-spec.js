@@ -66,17 +66,19 @@ describe('PUT request to update an item', function() {
             }));
             this.mockApp.putHandlers['/items/:identifier'](
                 new MockRequest({
-                    params: this.mockParams
+                    params: this.mockParams,
+                    method: 'PUT',
+                    url: 'mock.com/items/1'
                 }),
                 new MockResponse(),
                 this.mockNextFn
             );
         });
 
-        it('should call next with an Update Item failed error', function() {
+        it('should call next with a not found error', function() {
             expect(this.mockNextFn).toHaveBeenCalled();
-            expect(this.mockNextFn.calls.argsFor(0)[0])
-                    .toEqual(new Error('Update Item failed: id = 1 not found'));
+            expect(this.mockNextFn.calls.argsFor(0)[0].message)
+                    .toEqual('PUT mock.com/items/1 failed: id = 1 not found');
         });
 
     });
