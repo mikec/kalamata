@@ -33,7 +33,7 @@ global.hookExecTest = function(prefix, postfix, endpoint) {
 
 };
 
-global.hookErrorTest = function(prefix, postfix, endpoint) {
+global.hookErrorTest = function(prefix, postfix, endpoint, fromPromise) {
 
     beforeEach(function() {
         setupHook.call(
@@ -44,16 +44,20 @@ global.hookErrorTest = function(prefix, postfix, endpoint) {
         );
     });
 
-    it('should throw an error', function() {
-        expect(this.error).toBeDefined();
-        expect(this.error.message).toEqual('mock hook error');
-    });
+    if(fromPromise) {
 
-    it('should set the inner error', function() {
-        expect(this.error.inner).toBeDefined();
-        expect(this.error.inner.message)
-            .toEqual(this.hookFnName + ' failed');
-    });
+        it('should call next with the error', function() {
+            expect(this.mockNextFn).toHaveBeenCalled();
+        });
+
+    } else {
+
+        it('should throw an error', function() {
+            expect(this.error).toBeDefined();
+            expect(this.error.message).toEqual('mock hook error');
+        });
+
+    }
 
 }
 
@@ -113,11 +117,14 @@ global.setupHook = function(prefix, postfix, endpoint, fn) {
     this.k[this.hookFnName](this.hookFn);
     this.mockReq = new MockRequest();
     this.mockRes = new MockResponse();
+    this.mockNextFn = function() {};
+    spyOn(this, 'mockNextFn');
     spyOn(this.mockRes, 'send').and.callThrough();
     try {
         this.mockApp[mockHandlerIndex[postfix]+'Handlers'][endpoint](
             this.mockReq,
-            this.mockRes
+            this.mockRes,
+            this.mockNextFn
         );
     } catch(err) {
         this.error = err;

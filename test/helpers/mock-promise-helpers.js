@@ -22,10 +22,8 @@ MockPromise.prototype.then = function(fn) {
     return this.nextPromise;
 };
 
-MockPromise.prototype.catch = function(fn) {
-    if(this.thrownError) {
-        fn(this.thrownError);
-    }
+MockPromise.prototype.catch = function(nextFn) {
+    if(nextFn) nextFn(this.thrownError);
 }
 
 global.MockFailPromise = function(error) {
@@ -36,6 +34,6 @@ MockFailPromise.prototype.then = function() {
     return this;
 }
 
-MockFailPromise.prototype.catch = function(fn) {
-    fn(this.error);
+MockFailPromise.prototype.catch = function(nextFn) {
+    if(nextFn) nextFn(this.error);
 }

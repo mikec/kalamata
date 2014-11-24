@@ -55,31 +55,28 @@ describe('PUT request to update an item', function() {
 
         beforeEach(function() {
             var $this = this;
+            this.mockNextFn = function() {};
+            spyOn(this, 'mockNextFn');
             this.p = new MockPromise();
             this.mockParams = { identifier: '1' };
-            this.mockRequest = new MockRequest({
-                params: this.mockParams
-            });
-            this.mockResponse = new MockResponse();
-            spyOn(this.mockResponse, 'send');
             this.k.expose(MockModel.get('items', {
                 fetch: function() {
                     return $this.p;
                 }
             }));
-            try {
-                this.mockApp.putHandlers['/items/:identifier'](
-                    this.mockRequest,
-                    this.mockResponse
-                );
-            } catch(err) {
-                this.error = err;
-            }
+            this.mockApp.putHandlers['/items/:identifier'](
+                new MockRequest({
+                    params: this.mockParams
+                }),
+                new MockResponse(),
+                this.mockNextFn
+            );
         });
 
-        it('should throw an error', function() {
-            expect(this.error.message).toBe('Update Item failed: id = '
-                + this.mockParams.identifier + ' not found');
+        it('should call next with an Update Item failed error', function() {
+            expect(this.mockNextFn).toHaveBeenCalled();
+            expect(this.mockNextFn.calls.argsFor(0)[0])
+                    .toEqual(new Error('Update Item failed: id = 1 not found'));
         });
 
     });
@@ -103,7 +100,7 @@ describe('PUT request to update an item', function() {
 
         describe('that throws an error', function() {
 
-            hookErrorTest('before', 'UpdateItem', '/items/:identifier');
+            hookErrorTest('before', 'UpdateItem', '/items/:identifier', true);
 
             it('should not call save on the fetch result', function() {
                 expect(this.mockFetchResult.save).not.toHaveBeenCalled();
@@ -152,7 +149,7 @@ describe('PUT request to update an item', function() {
         });
 
         describe('that throws an error', function() {
-            hookErrorTest('after', 'UpdateItem', '/items/:identifier');
+            hookErrorTest('after', 'UpdateItem', '/items/:identifier', true);
         });
 
         describe('that sends a response', function() {

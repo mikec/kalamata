@@ -43,26 +43,20 @@ describe('GET request for single item', function() {
                     return new MockPromise([null], $this.p);
                 }
             });
-            this.mockRequest = new MockRequest({
-                params: { identifier: '1' }
-            });
+            this.mockNextFn = function() {};
+            spyOn(this, 'mockNextFn');
             this.k.expose(mockModel);
-            var fn = this.mockApp.getHandlers['/items/:identifier'];
-            try {
-                fn(this.mockRequest, new MockResponse());
-            } catch(err) {
-                this.error = err;
-            }
+            var fn = this.mockApp.getHandlers['/items/:identifier'](
+                new MockRequest({ params: { identifier: '1' } }),
+                new MockResponse(),
+                this.mockNextFn
+            );
         });
 
-        it('should throw an error on fetch callback', function() {
-            expect(this.error.message)
-                .toEqual('Get Item failed: id = ' +
-                            this.mockRequest.params.identifier + ' not found');
-        });
-
-        it('should not define an inner error', function() {
-            expect(this.error.inner).toBeUndefined();
+        it('should call next with an item not found error', function() {
+            expect(this.mockNextFn).toHaveBeenCalled();
+            expect(this.mockNextFn.calls.argsFor(0)[0])
+                        .toEqual(new Error('Get Item failed: id = 1 not found'));
         });
 
     });
@@ -70,29 +64,25 @@ describe('GET request for single item', function() {
     describe('when the call to fetch() throws an error', function() {
 
         beforeEach(function() {
+            var $this = this;
+            this.mockErr = new Error('mock error');
             var mockModel = MockModel.get('items', {
                 fetch: function() {
-                    return new MockFailPromise(new Error('mock error'));
+                    return new MockFailPromise($this.mockErr);
                 }
             });
-            this.mockRequest = new MockRequest({
-                params: { identifier: '1' }
-            });
+            this.mockNextFn = function() {};
+            spyOn(this, 'mockNextFn');
             this.k.expose(mockModel);
-            var fn = this.mockApp.getHandlers['/items/:identifier'];
-            try {
-                fn(this.mockRequest, new MockResponse());
-            } catch(err) {
-                this.error = err;
-            }
+            var fn = this.mockApp.getHandlers['/items/:identifier'](
+                new MockRequest(), new MockResponse(), this.mockNextFn
+            );
         });
 
-        it('should throw a \'Get Item failed\' error', function() {
-            expect(this.error.message).toEqual('Get Item failed');
-        });
-
-        it('should set the inner error', function() {
-            expect(this.error.inner.message).toEqual('mock error');
+        it('should call next with the error', function() {
+            expect(this.mockNextFn).toHaveBeenCalled();
+            expect(this.mockNextFn.calls.argsFor(0)[0])
+                .toBe(this.mockErr);
         });
 
     });
@@ -165,7 +155,7 @@ describe('GET request for single item', function() {
         });
 
         describe('that throws an error', function() {
-            hookErrorTest('after', 'GetItem', '/items/:identifier');
+            hookErrorTest('after', 'GetItem', '/items/:identifier', true);
         });
 
         describe('that sends a response', function() {

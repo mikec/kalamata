@@ -38,6 +38,8 @@ describe('POST request to create a new item', function() {
 
         beforeEach(function() {
             this.mockBody = { name: 'mock' };
+            this.mockNextFn = function() {};
+            spyOn(this, 'mockNextFn');
             this.mockRequest = new MockRequest({
                 body: this.mockBody
             });
@@ -46,19 +48,17 @@ describe('POST request to create a new item', function() {
                     return new MockFailPromise();
                 }
             }));
-            try {
-                this.mockApp.postHandlers['/items'](
-                    this.mockRequest,
-                    new MockResponse()
-                );
-            } catch(err) {
-                this.error = err;
-            }
+            this.mockApp.postHandlers['/items'](
+                new MockRequest(),
+                new MockResponse(),
+                this.mockNextFn
+            );
         });
 
-        it('should response with an error', function() {
-            expect(this.error.message).toEqual('Create Item ' +
-                    JSON.stringify(this.mockBody) + ' failed');
+        it('should call next with a Create Item failed error', function() {
+            expect(this.mockNextFn).toHaveBeenCalled();
+            expect(this.mockNextFn.calls.argsFor(0)[0]).toEqual(new Error('Create Item ' +
+                    JSON.stringify(this.mockBody) + ' failed'));
         });
 
     });
@@ -140,7 +140,7 @@ describe('POST request to create a new item', function() {
         });
 
         describe('that throws an error', function() {
-            hookErrorTest('after', 'CreateItem', '/items');
+            hookErrorTest('after', 'CreateItem', '/items', true);
         });
 
         describe('that sends a response', function() {

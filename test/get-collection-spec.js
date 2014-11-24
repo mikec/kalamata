@@ -41,30 +41,26 @@ describe('GET request for collection', function() {
     describe('when fetchAll throws an error', function() {
 
         beforeEach(function() {
+            var $this = this;
+            this.mockErr = new Error('mock error');
             this.mockModel = MockModel.get('items', {
                 fetchAll: function() {
-                    return new MockFailPromise([new Error('mock error')]);
+                    return new MockFailPromise($this.mockErr);
                 }
             });
             this.k.expose(this.mockModel);
-            this.mockResponse = new MockResponse();
-            spyOn(this.mockResponse, 'send');
-            try {
-                this.mockApp.getHandlers['/items'](
-                    new MockRequest(),
-                    this.mockResponse
-                );
-            } catch(err) {
-                this.error = err;
-            }
+            this.mockNextFn = function() {};
+            spyOn(this, 'mockNextFn');
+            this.mockApp.getHandlers['/items'](
+                new MockRequest(),
+                new MockResponse(),
+                this.mockNextFn
+            );
         });
 
-        it('should catch it and throw a \'Get Items failed\' error', function() {
-            expect(this.error.message).toEqual('Get Items failed');
-        });
-
-        it('should set the inner error', function() {
-            expect(this.error.inner).toBeDefined();
+        it('should call next with the error', function() {
+            expect(this.mockNextFn).toHaveBeenCalled();
+            expect(this.mockNextFn.calls.argsFor(0)[0]).toBe(this.mockErr);
         });
 
     });
@@ -109,10 +105,6 @@ describe('GET request for collection', function() {
 
             it('should throw a \'Could not parse JSON\' error', function() {
                 expect(this.error.message).toEqual('Could not parse JSON: {firstname}');
-            });
-
-            it('should set the inner error', function() {
-                expect(this.error.inner.message).toEqual('Unexpected token f');
             });
 
         });
@@ -208,7 +200,7 @@ describe('GET request for collection', function() {
         });
 
         describe('that throws an error', function() {
-            hookErrorTest('after', 'GetItems', '/items');
+            hookErrorTest('after', 'GetItems', '/items', true);
         });
 
         describe('that sends a response', function() {

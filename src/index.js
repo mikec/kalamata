@@ -52,16 +52,14 @@ kalamata.expose = function(model, _opts_) {
 
     function configureEndpoints() {
 
-        app.get(options.apiRoot + opts.endpointName, function(req, res) {
+        app.get(options.apiRoot + opts.endpointName, function(req, res, next) {
             var mod;
             if(req.query.where) {
                 var w;
                 try {
                     w = parseJSON(req.query.where);
                 } catch(err) {
-                    var e = new Error('Could not parse JSON: ' + req.query.where);
-                    e.inner = err;
-                    throw e;
+                    throw new Error('Could not parse JSON: ' + req.query.where);
                 }
                 mod = new model().where(w);
             } else {
@@ -72,19 +70,17 @@ kalamata.expose = function(model, _opts_) {
             if(res.headersSent) return;
 
             var promise = beforeResult.promise || mod.fetchAll();
-            var promiseResult = promise.then(function(collection) {
+            promise.then(function(collection) {
                 var afterResult = runHooks(
                                     hooks.after.getCollection, req, res, collection);
                 return afterResult.promise || collection;
             }).then(function(collection) {
                 sendResponse(res, collection.toJSON());
-            });
-
-            catchError(promiseResult, 'Get ' + opts.collectionName + ' failed');
+            }).catch(next);
         });
 
         app.get(options.apiRoot + opts.endpointName + '/:identifier',
-        function(req, res) {
+        function(req, res, next) {
             var modelAttrs = {};
             modelAttrs[opts.identifier] = req.params.identifier;
             var mod = new model(modelAttrs);
@@ -93,26 +89,22 @@ kalamata.expose = function(model, _opts_) {
             if(res.headersSent) return;
 
             var promise = beforeResult.promise || mod.fetch();
-            var promiseResult = promise.then(function(m) {
+            promise.then(function(m) {
                 if(!m) {
-                    var e = new Error(
+                    throw new Error(
                         'Get ' + opts.modelName + ' failed: ' +
                         opts.identifier + ' = ' + req.params.identifier +
                         ' not found'
                     );
-                    e.isInner = true;
-                    throw e;
                 }
                 var afterResult = runHooks(hooks.after.get, req, res, m);
                 return afterResult.promise || m;
             }).then(function(m) {
                 sendResponse(res, m);
-            });
-
-            catchError(promiseResult, 'Get ' + opts.modelName + ' failed');
+            }).catch(next);
         });
 
-        app.post(options.apiRoot + opts.endpointName, function(req, res) {
+        app.post(options.apiRoot + opts.endpointName, function(req, res, next) {
             var mod = new model(req.body);
 
             var beforeResult = runHooks(hooks.before.create, req, res, mod);
@@ -128,14 +120,11 @@ kalamata.expose = function(model, _opts_) {
                 if(m) {
                     sendResponse(res, m.toJSON());
                 }
-            });
-
-            catchError(promiseResult, 'Create ' + opts.modelName + ' ' +
-                                    JSON.stringify(req.body) + ' failed');
+            }).catch(next);
         });
 
         app.put(options.apiRoot + opts.endpointName + '/:identifier',
-        function(req, res) {
+        function(req, res, next) {
             var modelAttrs = {};
             modelAttrs[opts.identifier] = req.params.identifier;
             var promiseResult = new model(modelAttrs).fetch().then(function(m) {
@@ -145,13 +134,11 @@ kalamata.expose = function(model, _opts_) {
                 if(res.headersSent) return;
 
                 if(!m) {
-                    var e = new Error(
+                    throw new Error(
                         'Update ' + opts.modelName + ' failed: ' +
                         opts.identifier + ' = ' + req.params.identifier +
                         ' not found'
                     );
-                    e.isInner = true;
-                    throw e;
                 }
 
                 return beforeResult.promise || m.save();
@@ -165,13 +152,11 @@ kalamata.expose = function(model, _opts_) {
                 if(m) {
                     sendResponse(res, m.toJSON());
                 }
-            });
-
-            catchError(promiseResult, 'Update ' + opts.modelName + ' failed');
+            }).catch(next);
         });
 
         app.delete(options.apiRoot + opts.endpointName + '/:identifier',
-        function(req, res) {
+        function(req, res, next) {
             var modelAttrs = {};
             modelAttrs[opts.identifier] = req.params.identifier;
             var promiseResult = new model(modelAttrs).fetch().then(function(m) {
@@ -180,13 +165,11 @@ kalamata.expose = function(model, _opts_) {
                 if(res.headersSent) return;
 
                 if(!m) {
-                    var e = new Error(
+                    throw new Error(
                         'Delete ' + opts.modelName + ' failed: ' +
                         opts.identifier + ' = ' + req.params.identifier +
                         ' not found'
                     );
-                    e.isInner = true;
-                    throw e;
                 }
 
                 return beforeResult.promise || m.destroy();
@@ -197,37 +180,14 @@ kalamata.expose = function(model, _opts_) {
                 }
             }).then(function() {
                 sendResponse(res, true);
-            });
-
-            catchError(promiseResult, 'Delete ' + opts.modelName + ' failed');
-        });
-    }
-
-    function catchError(promise, message) {
-        promise.catch(function(err) {
-            var e;
-            if(err.isInner) {
-                e = err;
-            } else {
-                e = new Error(message);
-                e.inner = err;
-            }
-            throw e;
+            }).catch(next);
         });
     }
 
     function runHooks(fnArray, req, res, model, result) {
         var result;
         for(var i in fnArray) {
-            var fn = fnArray[i];
-            try {
-                result = fn(req, res, model, result);
-            } catch(err) {
-                var e = err;
-                e.isInner = true;
-                e.inner = new Error(fn.__name + ' failed');
-                throw e;
-            }
+            result = fnArray[i](req, res, model, result);
         }
         if(result && result.then) {
             return {
