@@ -72,7 +72,7 @@ kalamata.expose = function(model, _opts_) {
             if(res.headersSent) return;
 
             var promise = beforeResult.promise || m.fetchAll();
-            promise.then(function(collection) {
+            var promiseResult = promise.then(function(collection) {
                 var afterResult = runHooks(
                                     hooks.after.getCollection, req, res, collection);
                 return afterResult.promise || collection;
@@ -80,7 +80,7 @@ kalamata.expose = function(model, _opts_) {
                 sendResponse(res, collection.toJSON());
             });
 
-            catchError(promise, 'Get ' + opts.collectionName + ' failed');
+            catchError(promiseResult, 'Get ' + opts.collectionName + ' failed');
         });
 
         app.get(options.apiRoot + opts.endpointName + '/:identifier',
@@ -93,7 +93,7 @@ kalamata.expose = function(model, _opts_) {
             if(res.headersSent) return;
 
             var promise = beforeResult.promise || m.fetch();
-            promise.then(function(m) {
+            var promiseResult = promise.then(function(m) {
                 if(!m) {
                     var e = new Error(
                         'Get ' + opts.modelName + ' failed: ' +
@@ -109,7 +109,7 @@ kalamata.expose = function(model, _opts_) {
                 sendResponse(res, m);
             });
 
-            catchError(promise, 'Get ' + opts.modelName + ' failed');
+            catchError(promiseResult, 'Get ' + opts.modelName + ' failed');
         });
 
         app.post(options.apiRoot + opts.endpointName, function(req, res) {
@@ -119,7 +119,7 @@ kalamata.expose = function(model, _opts_) {
             if(res.headersSent) return;
 
             var promise = beforeResult.promise || m.save();
-            promise.then(function(m) {
+            var promiseResult = promise.then(function(m) {
                 if(m) {
                     var afterResult = runHooks(hooks.after.create, req, res, m);
                     return afterResult.promise || m;
@@ -130,7 +130,7 @@ kalamata.expose = function(model, _opts_) {
                 }
             });
 
-            catchError(promise, 'Create ' + opts.modelName + ' ' +
+            catchError(promiseResult, 'Create ' + opts.modelName + ' ' +
                                     JSON.stringify(req.body) + ' failed');
         });
 
@@ -138,7 +138,7 @@ kalamata.expose = function(model, _opts_) {
         function(req, res) {
             var modelAttrs = {};
             modelAttrs[opts.identifier] = req.params.identifier;
-            var promise = new model(modelAttrs).fetch().then(function(m) {
+            var promiseResult = new model(modelAttrs).fetch().then(function(m) {
 
                 if(m) m.set(req.body);
                 var beforeResult = runHooks(hooks.before.update, req, res, m);
@@ -167,14 +167,14 @@ kalamata.expose = function(model, _opts_) {
                 }
             });
 
-            catchError(promise, 'Update ' + opts.modelName + ' failed');
+            catchError(promiseResult, 'Update ' + opts.modelName + ' failed');
         });
 
         app.delete(options.apiRoot + opts.endpointName + '/:identifier',
         function(req, res) {
             var modelAttrs = {};
             modelAttrs[opts.identifier] = req.params.identifier;
-            var promise = new model(modelAttrs).fetch().then(function(m) {
+            var promiseResult = new model(modelAttrs).fetch().then(function(m) {
 
                 var beforeResult = runHooks(hooks.before.del, req, res, m);
                 if(res.headersSent) return;
@@ -200,7 +200,7 @@ kalamata.expose = function(model, _opts_) {
                 sendResponse(res, true);
             });
 
-            catchError(promise, 'Delete ' + opts.modelName + ' failed');
+            catchError(promiseResult, 'Delete ' + opts.modelName + ' failed');
         });
     }
 

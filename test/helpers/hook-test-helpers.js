@@ -80,10 +80,13 @@ global.setupHook = function(prefix, postfix, endpoint, fn) {
     this.hookFn = fn;
     this.hookFnName = prefix + postfix;
     var mockFetchAllResult =
-            this.mockFetchAllResult =
-                    [new (MockModel.get('items'))(),
-                     new (MockModel.get('items'))(),
-                     new (MockModel.get('items'))()];
+            this.mockFetchAllResult = {
+                    toJSON: function() {
+                        return [new (MockModel.get('items'))(),
+                                 new (MockModel.get('items'))(),
+                                 new (MockModel.get('items'))()];
+                    }
+                };
     var mockFetchResult = this.mockFetchResult = new (MockModel.get('items'))();
     var mockSaveResult = this.mockSaveResult = new (MockModel.get('items'))();
     this.mockFetchAll = function() {
