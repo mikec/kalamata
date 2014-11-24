@@ -159,15 +159,9 @@ kalamata.expose = function(model, _opts_) {
                 var beforeResult = runHooks(hooks.before.del, req, res, m);
                 if(res.headersSent) return;
 
-                if(!m) {
-                    throw new Error(
-                        'Delete ' + opts.modelName + ' failed: ' +
-                        opts.identifier + ' = ' + req.params.identifier +
-                        ' not found'
-                    );
-                }
-
-                return beforeResult.promise || m.destroy();
+                return m ? (beforeResult.promise || m.destroy()) : null;
+            }).then(function(m) {
+                return checkModelFetchSuccess(req, m);
             }).then(function(m) {
                 if(m) {
                     var afterResult = runHooks(hooks.after.del, req, res, m);

@@ -52,7 +52,9 @@ describe('DELETE request to delete an item', function() {
             }));
             this.mockApp.deleteHandlers['/items/:identifier'](
                 new MockRequest({
-                    params: this.mockParams
+                    params: { identifier: 1 },
+                    method: 'DELETE',
+                    url: 'mock.com/items/1'
                 }),
                 new MockResponse(),
                 this.mockNextFn
@@ -61,8 +63,8 @@ describe('DELETE request to delete an item', function() {
 
         it('should call next with an item not found error', function() {
             expect(this.mockNextFn).toHaveBeenCalled();
-            expect(this.mockNextFn.calls.argsFor(0)[0])
-                    .toEqual(new Error('Delete Item failed: id = 1 not found'));
+            expect(this.mockNextFn.calls.argsFor(0)[0].message)
+                    .toEqual('DELETE mock.com/items/1 failed: id = 1 not found');
         });
 
     });
