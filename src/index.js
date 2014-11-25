@@ -131,14 +131,15 @@ kalamata.expose = function(model, _opts_) {
         app.put(options.apiRoot + opts.endpointName + '/:identifier',
         function(req, res, next) {
             var promiseResult = new model(getModelAttrs(req)).fetch().then(function(m) {
-
                 if(m) m.set(req.body);
                 var beforeResult = runHooks(hooks.before.update, req, res, m);
-                if(res.headersSent) return;
-
-                return m ? (beforeResult.promise || m.save()) : null;
-            }).then(function(m) {
-                return checkModelFetchSuccess(req, m);
+                if(!res.headersSent) {
+                    if(m) {
+                        return beforeResult.promise || m.save();
+                    } else {
+                        return checkModelFetchSuccess(req, m);
+                    }
+                }
             }).then(function(m) {
                 if(m) {
                     var afterResult = runHooks(hooks.after.update, req, res, m);
@@ -154,13 +155,14 @@ kalamata.expose = function(model, _opts_) {
         app.delete(options.apiRoot + opts.endpointName + '/:identifier',
         function(req, res, next) {
             var promiseResult = new model(getModelAttrs(req)).fetch().then(function(m) {
-
                 var beforeResult = runHooks(hooks.before.del, req, res, m);
-                if(res.headersSent) return;
-
-                return m ? (beforeResult.promise || m.destroy()) : null;
-            }).then(function(m) {
-                return checkModelFetchSuccess(req, m);
+                if(!res.headersSent) {
+                    if(m) {
+                        return beforeResult.promise || m.destroy();
+                    } else {
+                        return checkModelFetchSuccess(req, m);
+                    }
+                }
             }).then(function(m) {
                 if(m) {
                     var afterResult = runHooks(hooks.after.del, req, res, m);

@@ -9,8 +9,12 @@ MockPromise.prototype.then = function(fn) {
     if(!this.thrownError && fn) {
         try {
             var returnVal = fn.apply(null, this.args);
-            if(returnVal && returnVal instanceof MockPromise) {
-                this.nextPromise = returnVal;
+            if(returnVal) {
+                if(returnVal instanceof MockPromise) {
+                    this.nextPromise = returnVal;
+                } else {
+                    this.nextPromise = new MockPromise([returnVal]);
+                }
             }
         } catch(thrownError) {
             this.thrownError = thrownError;
@@ -23,7 +27,7 @@ MockPromise.prototype.then = function(fn) {
 };
 
 MockPromise.prototype.catch = function(nextFn) {
-    if(nextFn) nextFn(this.thrownError);
+    if(nextFn && this.thrownError) nextFn(this.thrownError);
 }
 
 global.MockFailPromise = function(error) {

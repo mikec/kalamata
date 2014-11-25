@@ -123,6 +123,10 @@ describe('PUT request to update an item', function() {
                 expect(this.mockFetchResult.save).not.toHaveBeenCalled();
             });
 
+            it('should not throw an error', function() {
+                expect(this.mockNextFn).not.toHaveBeenCalled();
+            });
+
         });
 
         describe('that returns a promise', function() {
