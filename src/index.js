@@ -116,7 +116,7 @@ kalamata.expose = function(model, _opts_) {
             if(res.headersSent) return;
 
             var promise = beforeResult.promise || mod.save();
-            var promiseResult = promise.then(function(m) {
+            promise.then(function(m) {
                 if(m) {
                     var afterResult = runHooks(hooks.after.create, req, res, m);
                     return afterResult.promise || m;
@@ -130,7 +130,7 @@ kalamata.expose = function(model, _opts_) {
 
         app.put(options.apiRoot + opts.endpointName + '/:identifier',
         function(req, res, next) {
-            var promiseResult = new model(getModelAttrs(req)).fetch().then(function(m) {
+            new model(getModelAttrs(req)).fetch().then(function(m) {
                 if(m) m.set(req.body);
                 var beforeResult = runHooks(hooks.before.update, req, res, m);
                 if(!res.headersSent) {
@@ -154,7 +154,7 @@ kalamata.expose = function(model, _opts_) {
 
         app.delete(options.apiRoot + opts.endpointName + '/:identifier',
         function(req, res, next) {
-            var promiseResult = new model(getModelAttrs(req)).fetch().then(function(m) {
+            new model(getModelAttrs(req)).fetch().then(function(m) {
                 var beforeResult = runHooks(hooks.before.del, req, res, m);
                 if(!res.headersSent) {
                     if(m) {
