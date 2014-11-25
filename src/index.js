@@ -111,14 +111,10 @@ kalamata.expose = function(model, _opts_) {
                 }
                 if(!res.headersSent) {
                     if(m) {
-                        return beforeResult.promise || m;
+                        return beforeResult.promise || m.related(req.params.relation);
                     } else {
                         return checkModelFetchSuccess(req, m);
                     }
-                }
-            }).then(function(m) {
-                if(m) {
-                    return m.related(req.params.relation);
                 }
             }).then(function(related) {
                 var afterResult = {};
