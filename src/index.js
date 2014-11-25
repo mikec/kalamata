@@ -1,5 +1,6 @@
 var bodyParser = require('body-parser');
 var app, options;
+var hooks = {};
 
 var kalamata = module.exports = function(_app_, _options_) {
     app = _app_;
@@ -23,14 +24,17 @@ kalamata.expose = function(model, _opts_) {
         collectionName: true
     };
 
-    var hooks = {
+    var opts = {};
+    if(!opts.identifier) opts.identifier = 'id';
+    if(!opts.endpointName) opts.endpointName = model.forge().tableName;
+
+    hooks[opts.endpointName] = {
         before: hookArrays(),
         after: hookArrays()
     };
 
-    var opts = {};
-    if(!opts.identifier) opts.identifier = 'id';
-    if(!opts.endpointName) opts.endpointName = model.forge().tableName;
+    var beforeHooks = hooks[opts.endpointName].before;
+    var afterHooks = hooks[opts.endpointName].after;
 
     for(var p in _opts_) {
         if(validOpts[p]) {
@@ -66,13 +70,12 @@ kalamata.expose = function(model, _opts_) {
                 mod = new model();
             }
 
-            var beforeResult = runHooks(hooks.before.getCollection, req, res, mod);
+            var beforeResult = runHooks(beforeHooks.getCollection, req, res, mod);
             if(res.headersSent) return;
 
             var promise = beforeResult.promise || mod.fetchAll(getFetchParams(req));
             promise.then(function(collection) {
-                var afterResult = runHooks(
-                                    hooks.after.getCollection, req, res, collection);
+                var afterResult = runHooks(afterHooks.getCollection, req, res, collection);
                 return afterResult.promise || collection;
             }).then(function(collection) {
                 sendResponse(res, collection.toJSON());
@@ -83,14 +86,14 @@ kalamata.expose = function(model, _opts_) {
         function(req, res, next) {
             var mod = new model(getModelAttrs(req));
 
-            var beforeResult = runHooks(hooks.before.get, req, res, mod);
+            var beforeResult = runHooks(beforeHooks.get, req, res, mod);
             if(res.headersSent) return;
 
             var promise = beforeResult.promise || mod.fetch(getFetchParams(req));
             promise.then(function(m) {
                 return checkModelFetchSuccess(req, m);
             }).then(function(m) {
-                var afterResult = runHooks(hooks.after.get, req, res, m);
+                var afterResult = runHooks(afterHooks.get, req, res, m);
                 return afterResult.promise || m;
             }).then(function(m) {
                 sendResponse(res, m);
@@ -112,13 +115,13 @@ kalamata.expose = function(model, _opts_) {
         app.post(options.apiRoot + opts.endpointName, function(req, res, next) {
             var mod = new model(req.body);
 
-            var beforeResult = runHooks(hooks.before.create, req, res, mod);
+            var beforeResult = runHooks(beforeHooks.create, req, res, mod);
             if(res.headersSent) return;
 
             var promise = beforeResult.promise || mod.save();
             promise.then(function(m) {
                 if(m) {
-                    var afterResult = runHooks(hooks.after.create, req, res, m);
+                    var afterResult = runHooks(afterHooks.create, req, res, m);
                     return afterResult.promise || m;
                 }
             }).then(function(m) {
@@ -132,7 +135,7 @@ kalamata.expose = function(model, _opts_) {
         function(req, res, next) {
             new model(getModelAttrs(req)).fetch().then(function(m) {
                 if(m) m.set(req.body);
-                var beforeResult = runHooks(hooks.before.update, req, res, m);
+                var beforeResult = runHooks(beforeHooks.update, req, res, m);
                 if(!res.headersSent) {
                     if(m) {
                         return beforeResult.promise || m.save();
@@ -142,7 +145,7 @@ kalamata.expose = function(model, _opts_) {
                 }
             }).then(function(m) {
                 if(m) {
-                    var afterResult = runHooks(hooks.after.update, req, res, m);
+                    var afterResult = runHooks(afterHooks.update, req, res, m);
                     return afterResult.promise || m;
                 }
             }).then(function(m) {
@@ -155,7 +158,7 @@ kalamata.expose = function(model, _opts_) {
         app.delete(options.apiRoot + opts.endpointName + '/:identifier',
         function(req, res, next) {
             new model(getModelAttrs(req)).fetch().then(function(m) {
-                var beforeResult = runHooks(hooks.before.del, req, res, m);
+                var beforeResult = runHooks(beforeHooks.del, req, res, m);
                 if(!res.headersSent) {
                     if(m) {
                         return beforeResult.promise || m.destroy();
@@ -165,7 +168,7 @@ kalamata.expose = function(model, _opts_) {
                 }
             }).then(function(m) {
                 if(m) {
-                    var afterResult = runHooks(hooks.after.del, req, res, m);
+                    var afterResult = runHooks(afterHooks.del, req, res, m);
                     return afterResult.promise || m;
                 }
             }).then(function() {
@@ -221,13 +224,13 @@ kalamata.expose = function(model, _opts_) {
         if(type) {
             return function(fn) {
                 fn.__name = fnName;
-                hooks[prefix][type].push(fn);
+                hooks[opts.endpointName][prefix][type].push(fn);
             };
         } else {
             return function(fn) {
                 fn.__name = fnName;
                 for(var i in hooks[prefix]) {
-                    hooks[prefix][i].push(fn);
+                    hooks[opts.endpointName][prefix][i].push(fn);
                 }
             };
         }
