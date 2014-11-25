@@ -113,9 +113,13 @@ global.setupHook = function(prefix, postfix, endpoint, fn) {
         fetch: this.mockFetch,
         save: this.mockSave
     });
+    this.mockRelatedModel = MockModel.get('things');
     this.k.expose(this.mockModel);
+    this.k.expose(this.mockRelatedModel);
     this.k[this.hookFnName](this.hookFn);
-    this.mockReq = new MockRequest();
+    this.mockReq = new MockRequest({
+        params: { relation: 'things' }
+    });
     this.mockRes = new MockResponse();
     this.mockNextFn = function() {};
     spyOn(this, 'mockNextFn');
@@ -136,5 +140,6 @@ var mockHandlerIndex = {
     'GetItem': 'get',
     'CreateItem': 'post',
     'UpdateItem': 'put',
-    'DeleteItem': 'delete'
+    'DeleteItem': 'delete',
+    'GetThings': 'get'
 };

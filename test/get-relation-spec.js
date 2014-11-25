@@ -68,4 +68,24 @@ describe('GET request for a relation', function() {
 
     });
 
+    describe('with a before hook', function() {
+
+        describe('that runs without executing any code', function() {
+
+            hookExecTest('before', 'GetThings', '/items/:identifier/:relation');
+
+        });
+
+    });
+
+    describe('with an after hook', function() {
+
+        describe('that runs without executing any code', function() {
+
+            hookExecTest('after', 'GetThings', '/items/:identifier/:relation');
+
+        });
+
+    });
+
 });

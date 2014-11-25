@@ -102,11 +102,30 @@ kalamata.expose = function(model, _opts_) {
 
         app.get(options.apiRoot + opts.endpointName + '/:identifier/:relation',
         function(req, res, next) {
+            var relHooks = hooks[req.params.relation];
             var mod = new model(getModelAttrs(req));
             mod.fetch({ withRelated: req.params.relation }).then(function(m) {
-                return checkModelFetchSuccess(req, m);
+                var beforeResult = {};
+                if(relHooks) {
+                    beforeResult = runHooks(relHooks.before.getCollection, req, res, m);
+                }
+                if(!res.headersSent) {
+                    if(m) {
+                        return beforeResult.promise || m;
+                    } else {
+                        return checkModelFetchSuccess(req, m);
+                    }
+                }
             }).then(function(m) {
-                return m.related(req.params.relation);
+                if(m) {
+                    return m.related(req.params.relation);
+                }
+            }).then(function(related) {
+                var afterResult = {};
+                if(relHooks) {
+                    afterResult = runHooks(relHooks.after.getCollection, req, res, related);
+                }
+                return afterResult.promise || related;
             }).then(function(related) {
                 sendResponse(res, related);
             }).catch(next);
