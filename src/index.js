@@ -131,16 +131,15 @@ kalamata.expose = function(model, _opts_) {
         app.put(options.apiRoot + opts.endpointName + '/:identifier',
         function(req, res, next) {
             var promiseResult = new model(getModelAttrs(req)).fetch().then(function(m) {
-                return checkModelFetchSuccess(req, m);
-            }).then(function(m) {
 
                 if(m) m.set(req.body);
                 var beforeResult = runHooks(hooks.before.update, req, res, m);
                 if(res.headersSent) return;
 
-                return beforeResult.promise || m.save();
-            })
-            .then(function(m) {
+                return m ? (beforeResult.promise || m.save()) : null;
+            }).then(function(m) {
+                return checkModelFetchSuccess(req, m);
+            }).then(function(m) {
                 if(m) {
                     var afterResult = runHooks(hooks.after.update, req, res, m);
                     return afterResult.promise || m;
