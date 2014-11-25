@@ -68,11 +68,13 @@ describe('initializing', function() {
 
         it('should set hook functions based on table name', function() {
             expect(this.k.beforeGetItems).toBeDefined();
+            expect(this.k.beforeGetRelatedItems).toBeDefined();
             expect(this.k.beforeGetItem).toBeDefined();
             expect(this.k.beforeCreateItem).toBeDefined();
             expect(this.k.beforeUpdateItem).toBeDefined();
             expect(this.k.beforeDeleteItem).toBeDefined();
             expect(this.k.afterGetItems).toBeDefined();
+            expect(this.k.afterGetRelatedItems).toBeDefined();
             expect(this.k.afterGetItem).toBeDefined();
             expect(this.k.afterCreateItem).toBeDefined();
             expect(this.k.afterUpdateItem).toBeDefined();
@@ -90,11 +92,13 @@ describe('initializing', function() {
 
         it('should set hook functions based on table name', function() {
             expect(this.k.beforeGetPeopleCollection).toBeDefined();
+            expect(this.k.beforeGetRelatedPeopleCollection).toBeDefined();
             expect(this.k.beforeGetPeople).toBeDefined();
             expect(this.k.beforeCreatePeople).toBeDefined();
             expect(this.k.beforeUpdatePeople).toBeDefined();
             expect(this.k.beforeDeletePeople).toBeDefined();
             expect(this.k.afterGetPeopleCollection).toBeDefined();
+            expect(this.k.afterGetRelatedPeopleCollection).toBeDefined();
             expect(this.k.afterGetPeople).toBeDefined();
             expect(this.k.afterCreatePeople).toBeDefined();
             expect(this.k.afterUpdatePeople).toBeDefined();
@@ -115,11 +119,13 @@ describe('initializing', function() {
 
         it('should set hook functions based on table name', function() {
             expect(this.k.beforeGetPeople).toBeDefined();
+            expect(this.k.beforeGetRelatedPeople).toBeDefined();
             expect(this.k.beforeGetPerson).toBeDefined();
             expect(this.k.beforeCreatePerson).toBeDefined();
             expect(this.k.beforeUpdatePerson).toBeDefined();
             expect(this.k.beforeDeletePerson).toBeDefined();
             expect(this.k.afterGetPeople).toBeDefined();
+            expect(this.k.afterGetRelatedPeople).toBeDefined();
             expect(this.k.afterGetPerson).toBeDefined();
             expect(this.k.afterCreatePerson).toBeDefined();
             expect(this.k.afterUpdatePerson).toBeDefined();

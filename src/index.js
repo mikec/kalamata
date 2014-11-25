@@ -1,6 +1,7 @@
 var bodyParser = require('body-parser');
 var app, options;
 var hooks = {};
+var modelMap = {};
 
 var kalamata = module.exports = function(_app_, _options_) {
     app = _app_;
@@ -27,6 +28,8 @@ kalamata.expose = function(model, _opts_) {
     var opts = {};
     if(!opts.identifier) opts.identifier = 'id';
     if(!opts.endpointName) opts.endpointName = model.forge().tableName;
+
+    modelMap[opts.endpointName] = model;
 
     hooks[opts.endpointName] = {
         before: hookArrays(),
@@ -102,12 +105,14 @@ kalamata.expose = function(model, _opts_) {
 
         app.get(options.apiRoot + opts.endpointName + '/:identifier/:relation',
         function(req, res, next) {
+            var relModel = modelMap[req.params.relation];
             var relHooks = hooks[req.params.relation];
             var mod = new model(getModelAttrs(req));
             mod.fetch({ withRelated: req.params.relation }).then(function(m) {
                 var beforeResult = {};
                 if(relHooks) {
-                    beforeResult = runHooks(relHooks.before.getCollection, [req, res, m]);
+                    beforeResult = runHooks(relHooks.before.getRelated,
+                                                [req, res, m]);
                 }
                 if(!res.headersSent) {
                     if(m) {
@@ -119,7 +124,7 @@ kalamata.expose = function(model, _opts_) {
             }).then(function(related) {
                 var afterResult = {};
                 if(relHooks) {
-                    afterResult = runHooks(relHooks.after.getCollection, [req, res, related]);
+                    afterResult = runHooks(relHooks.after.getRelated, [req, res, related, mod]);
                 }
                 return afterResult.promise || related;
             }).then(function(related) {
@@ -210,6 +215,7 @@ kalamata.expose = function(model, _opts_) {
         return {
             get: [],
             getCollection: [],
+            getRelated: [],
             create: [],
             update: [],
             del: []
@@ -219,12 +225,16 @@ kalamata.expose = function(model, _opts_) {
     function createHookFunctions() {
         createHookFunction('beforeGet' + opts.collectionName,
                                 'before', 'getCollection');
+        createHookFunction('beforeGetRelated' + opts.collectionName,
+                                'before', 'getRelated');
         createHookFunction('beforeGet' + opts.modelName, 'before', 'get');
         createHookFunction('beforeCreate' + opts.modelName, 'before', 'create');
         createHookFunction('beforeUpdate' + opts.modelName, 'before', 'update');
         createHookFunction('beforeDelete' + opts.modelName, 'before', 'del');
         createHookFunction('afterGet' + opts.collectionName,
                                 'after', 'getCollection');
+        createHookFunction('afterGetRelated' + opts.collectionName,
+                                'after', 'getRelated');
         createHookFunction('afterGet' + opts.modelName, 'after', 'get');
         createHookFunction('afterCreate' + opts.modelName, 'after', 'create');
         createHookFunction('afterUpdate' + opts.modelName, 'after', 'update');
