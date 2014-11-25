@@ -192,7 +192,7 @@ kalamata.expose = function(model, _opts_) {
         });
     }
 
-    function runHooks(fnArray, req, res, model, result) {
+    function runHooks(fnArray, req, res, model) {
         var result;
         for(var i in fnArray) {
             result = fnArray[i](req, res, model, result);
