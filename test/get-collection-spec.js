@@ -157,12 +157,11 @@ describe('GET request for collection', function() {
             );
         });
 
-        it('should call load and pass an array of relations', function() {
+        it('should call load and pass an array of relation objects', function() {
             expect(this.mockFetchAllFn).toHaveBeenCalled();
-            expect(this.mockFetchAllFn.calls.argsFor(0)[0])
-                    .toEqual({
-                        withRelated: ['users', 'things']
-                    });
+            var withRelArray = this.mockFetchAllFn.calls.argsFor(0)[0].withRelated;
+            expect(withRelArray[0].users).toBeDefined();
+            expect(withRelArray[1].things).toBeDefined();
         });
 
     });

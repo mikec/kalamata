@@ -76,7 +76,7 @@ kalamata.expose = function(model, _opts_) {
             var beforeResult = runHooks(beforeHooks.getCollection, [req, res, mod]);
             if(res.headersSent) return;
 
-            var promise = beforeResult.promise || mod.fetchAll(getFetchParams(req));
+            var promise = beforeResult.promise || mod.fetchAll(getFetchParams(req, res));
             promise.then(function(collection) {
                 var afterResult = runHooks(afterHooks.getCollection, [req, res, collection]);
                 return afterResult.promise || collection;
@@ -92,7 +92,7 @@ kalamata.expose = function(model, _opts_) {
             var beforeResult = runHooks(beforeHooks.get, [req, res, mod]);
             if(res.headersSent) return;
 
-            var promise = beforeResult.promise || mod.fetch(getFetchParams(req));
+            var promise = beforeResult.promise || mod.fetch(getFetchParams(req, res));
             promise.then(function(m) {
                 return checkModelFetchSuccess(req, m);
             }).then(function(m) {
@@ -105,26 +105,20 @@ kalamata.expose = function(model, _opts_) {
 
         app.get(options.apiRoot + opts.endpointName + '/:identifier/:relation',
         function(req, res, next) {
-            var relModel = modelMap[req.params.relation];
-            var relHooks = hooks[req.params.relation];
             var mod = new model(getModelAttrs(req));
-            mod.fetch({ withRelated: req.params.relation }).then(function(m) {
-                var beforeResult = {};
-                if(relHooks) {
-                    beforeResult = runHooks(relHooks.before.getRelated,
-                                                [req, res, m]);
-                }
-                if(!res.headersSent) {
-                    if(m) {
-                        return beforeResult.promise || m.related(req.params.relation);
-                    } else {
-                        return checkModelFetchSuccess(req, m);
-                    }
-                }
+            mod.fetch({
+                withRelated: getWithRelatedArray([req.params.relation], req, res)
+            }).then(function(m) {
+                return checkModelFetchSuccess(req, m);
+            }).then(function(m) {
+                return m.related(req.params.relation);
             }).then(function(related) {
                 var afterResult = {};
+                var relHooks = hooks[req.params.relation];
                 if(relHooks) {
-                    afterResult = runHooks(relHooks.after.getRelated, [req, res, related, mod]);
+                    afterResult = runHooks(
+                                    hooks[req.params.relation].after.getRelated,
+                                    [req, res, related, mod]);
                 }
                 return afterResult.promise || related;
             }).then(function(related) {
@@ -281,9 +275,24 @@ kalamata.expose = function(model, _opts_) {
         return attrs;
     }
 
-    function getFetchParams(req) {
-        return req.query.load ?
-                    { withRelated: req.query.load.split(',') } : null;
+    function getWithRelatedArray(related, req, res) {
+        var relArray = [];
+        for(var i in related) {
+            var r = related[i];
+            var relHooks = hooks[r];
+            var relObj = {};
+            relObj[r] = function(qb) {
+                runHooks(relHooks.before.getRelated, [req, res, qb]);
+            };
+            relArray.push(relObj);
+        }
+        return relArray;
+    }
+
+    function getFetchParams(req, res) {
+        return req.query.load ? {
+                    withRelated: getWithRelatedArray(req.query.load.split(','), req, res)
+                } : null;
     }
 
     function sendResponse(response, sendData) {
