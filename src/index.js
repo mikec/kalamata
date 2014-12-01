@@ -280,11 +280,15 @@ kalamata.expose = function(model, _opts_) {
         for(var i in related) {
             var r = related[i];
             var relHooks = hooks[r];
-            var relObj = {};
-            relObj[r] = function(qb) {
-                runHooks(relHooks.before.getRelated, [req, res, qb]);
-            };
-            relArray.push(relObj);
+            if(relHooks) {
+                var relObj = {};
+                relObj[r] = function(qb) {
+                    runHooks(relHooks.before.getRelated, [req, res, qb]);
+                };
+                relArray.push(relObj);
+            } else {
+                relArray.push(r);
+            }
         }
         return relArray;
     }

@@ -150,7 +150,7 @@ describe('GET request for collection', function() {
             this.mockApp.getHandlers['/items'](
                 new MockRequest({
                     query: {
-                        load: 'users,things'
+                        load: 'orders,companies'
                     }
                 }),
                 new MockResponse()
@@ -159,9 +159,8 @@ describe('GET request for collection', function() {
 
         it('should call load and pass an array of relation objects', function() {
             expect(this.mockFetchAllFn).toHaveBeenCalled();
-            var withRelArray = this.mockFetchAllFn.calls.argsFor(0)[0].withRelated;
-            expect(withRelArray[0].users).toBeDefined();
-            expect(withRelArray[1].things).toBeDefined();
+            expect(this.mockFetchAllFn.calls.argsFor(0)[0].withRelated)
+                            .toEqual(['orders','companies']);
         });
 
     });

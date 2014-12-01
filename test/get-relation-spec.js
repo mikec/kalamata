@@ -68,24 +68,71 @@ describe('GET request for a relation', function() {
 
     });
 
-    /*describe('with a before hook', function() {
+    describe('with a before hook', function() {
 
         describe('that runs without executing any code', function() {
 
-            hookExecTest('before', 'GetThings', '/items/:identifier/:relation');
+            beforeEach(function() {
+                var $this = this;
+                this.hookFn = function() {}
+                this.k.expose(MockModel.get('items'));
+                this.k.expose(MockModel.get('things'));
+                this.k.beforeGetRelatedThings(function() {
+                    $this.hookFn();
+                });
+                this.mockResponse = new MockResponse();
+                spyOn(this.mockResponse, 'send');
+                spyOn(this, 'hookFn');
+                var fn = this.mockApp.getHandlers['/items/:identifier/:relation'];
+                fn(new MockRequest({
+                    params: { identifier: '1', relation: 'things' }
+                }), this.mockResponse);
+            });
+
+            it('should call the hook', function() {
+                expect(this.hookFn).toHaveBeenCalled();
+            });
+
+            it('should send a response', function() {
+                expect(this.mockResponse.send).toHaveBeenCalled();
+            });
+
+        });
+
+        describe('that throws an error', function() {
+
+            beforeEach(function() {
+                var $this = this;
+                this.mockNextFn = function() {};
+                this.hookFn = function() {
+                    $this.mockError = new Error('mock error');
+                    throw $this.mockError;
+                }
+                this.k.expose(MockModel.get('items'));
+                this.k.expose(MockModel.get('things'));
+                this.k.beforeGetRelatedThings(function() {
+                    $this.hookFn();
+                });
+                this.mockResponse = new MockResponse();
+                spyOn(this.mockResponse, 'send');
+                spyOn(this, 'mockNextFn');
+                var fn = this.mockApp.getHandlers['/items/:identifier/:relation'];
+                try {
+                    fn(new MockRequest({
+                        params: { identifier: '1', relation: 'things' }
+                    }), this.mockResponse, this.mockNextFn);
+                } catch(err) {
+                    this.error = err;
+                }
+            });
+
+            it('should throw an error', function() {
+                expect(this.error).toBeDefined();
+                expect(this.error).toBe(this.mockError);
+            });
 
         });
 
     });
-
-    describe('with an after hook', function() {
-
-        describe('that runs without executing any code', function() {
-
-            hookExecTest('after', 'GetThings', '/items/:identifier/:relation');
-
-        });
-
-    });*/
 
 });

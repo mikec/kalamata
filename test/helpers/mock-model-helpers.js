@@ -16,10 +16,12 @@ global.MockModel = {
             return { tableName: tableName };
         };
 
-        m.prototype.fetchAll = modelMocks.fetchAll || function() {
+        m.prototype.fetchAll = modelMocks.fetchAll || function(params) {
+            runWithRelatedFuncs(params);
             return new MockPromise([[ this, this, this ]]);
         };
-        m.prototype.fetch = modelMocks.fetch || function() {
+        m.prototype.fetch = modelMocks.fetch || function(params) {
+            runWithRelatedFuncs(params);
             return new MockPromise([this]);
         };
         m.prototype.where = modelMocks.where || function() {
@@ -48,3 +50,14 @@ global.MockModel = {
     }
 
 };
+
+function runWithRelatedFuncs(params) {
+    if(params && params.withRelated) {
+        for(var i in params.withRelated) {
+            var r = params.withRelated[i];
+            for(var j in r) {
+                r[j]();
+            }
+        }
+    }
+}

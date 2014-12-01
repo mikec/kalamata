@@ -54,9 +54,8 @@ describe('GET request for single item', function() {
 
         it('should call load and pass an array of relations', function() {
             expect(this.mockFetchFn).toHaveBeenCalled();
-            var withRelArray = this.mockFetchFn.calls.argsFor(0)[0].withRelated;
-            expect(withRelArray[0].users).toBeDefined();
-            expect(withRelArray[1].things).toBeDefined();
+            expect(this.mockFetchFn.calls.argsFor(0)[0].withRelated)
+                            .toEqual(['users','things']);
         });
 
     });
