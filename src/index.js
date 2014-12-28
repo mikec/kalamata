@@ -145,6 +145,28 @@ kalamata.expose = function(model, _opts_) {
             }).catch(next);
         });
 
+        app.post(options.apiRoot + opts.endpointName + '/:identifier/:relation',
+        function(req, res, next) {
+            /*mod.fetch({
+                withRelated: getWithRelatedArray([req.params.relation], req, res)
+            }).then(function(m) {
+                return checkModelFetchSuccess(req, m);
+            }).then(function(m) {
+                return m.related(req.params.relation);
+            }).then(function(related) {
+                var afterResult = {};
+                var relHooks = hooks[req.params.relation];
+                if(relHooks) {
+                    afterResult = runHooks(
+                                    hooks[req.params.relation].after.getRelated,
+                                    [req, res, related, mod]);
+                }
+                return afterResult.promise || related;
+            }).then(function(related) {
+                sendResponse(res, related);
+            }).catch(next);*/
+        });
+
         app.put(options.apiRoot + opts.endpointName + '/:identifier',
         function(req, res, next) {
             new model(getModelAttrs(req)).fetch().then(function(m) {

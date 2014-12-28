@@ -157,8 +157,18 @@ describe('initializing', function() {
                 .toEqual(endpointPath + '/:identifier');
         });
 
+        it('should configure get endpoint for a related collection', function() {
+            expect(this.mockApp.get.calls.argsFor(2)[0])
+                .toEqual(endpointPath + '/:identifier/:relation');
+        });
+
         it('should configure post endpoint for collection', function() {
             expect(this.mockApp.post.calls.argsFor(0)[0]).toEqual(endpointPath);
+        });
+
+        it('should configure post endpoint for related collection', function() {
+            expect(this.mockApp.post.calls.argsFor(1)[0])
+                .toEqual(endpointPath + '/:identifier/:relation');
         });
 
         it('should configure put endpoint for single item', function() {
