@@ -18,7 +18,7 @@ global.MockModel = {
 
         m.prototype.fetchAll = modelMocks.fetchAll || function(params) {
             runWithRelatedFuncs(params);
-            return new MockPromise([[ this, this, this ]]);
+            return new MockPromise([MockCollection]);
         };
         m.prototype.fetch = modelMocks.fetch || function(params) {
             runWithRelatedFuncs(params);
@@ -31,7 +31,7 @@ global.MockModel = {
             return new MockPromise([this]);
         };
         m.prototype.related = modelMocks.related || function() {
-            return new MockPromise([ this, this, this ]);
+            return MockCollection;
         };
         m.prototype.save = modelMocks.save || function() {
             return new MockPromise([this]);

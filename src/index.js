@@ -2,6 +2,7 @@ var bodyParser = require('body-parser');
 var app, options;
 var hooks = {};
 var modelMap = {};
+var identifierMap = {};
 
 var kalamata = module.exports = function(_app_, _options_) {
     app = _app_;
@@ -38,6 +39,7 @@ kalamata.expose = function(model, _opts_) {
     }
 
     modelMap[opts.endpointName] = model;
+    identifierMap[opts.endpointName] = opts.identifier;
 
     hooks[opts.endpointName] = {
         before: hookArrays(),
@@ -147,24 +149,24 @@ kalamata.expose = function(model, _opts_) {
 
         app.post(options.apiRoot + opts.endpointName + '/:identifier/:relation',
         function(req, res, next) {
-            /*mod.fetch({
-                withRelated: getWithRelatedArray([req.params.relation], req, res)
-            }).then(function(m) {
-                return checkModelFetchSuccess(req, m);
-            }).then(function(m) {
-                return m.related(req.params.relation);
-            }).then(function(related) {
-                var afterResult = {};
-                var relHooks = hooks[req.params.relation];
-                if(relHooks) {
-                    afterResult = runHooks(
-                                    hooks[req.params.relation].after.getRelated,
-                                    [req, res, related, mod]);
+            var rel = req.params.relation;
+            var rModel = modelMap[rel];
+            var rId = identifierMap[rel];
+            var mod = new model(getModelAttrs(req));
+            mod.fetch().then(function(m) {
+                var relCollection = m.related(rel);
+                if(req.body[rId]) {
+                    // fetch and add an existing model
+                    return (new rModel(req.body)).fetch().then(function(relMod) {
+                        return relCollection.create(relMod);
+                    });
+                } else {
+                    // create a new model
+                    return relCollection.create(req.body);
                 }
-                return afterResult.promise || related;
-            }).then(function(related) {
-                sendResponse(res, related);
-            }).catch(next);*/
+            }).then(function() {
+                sendResponse(res, null);
+            }).catch(next);
         });
 
         app.put(options.apiRoot + opts.endpointName + '/:identifier',
