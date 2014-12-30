@@ -1,35 +1,37 @@
 describe('POST request to create a relation', function() {
 
     beforeEach(function() {
+        var $this = this;
+
         this.mockApp = new MockApp();
         this.k = requireKalamata()(this.mockApp);
+
+        this.mockCollection = {
+            create: function() {}
+        };
+        this.mockModel = MockModel.get('items', {
+            related: function() {
+                return $this.mockCollection
+            }
+        });
+        this.mockRelModel = MockModel.get('things');
+        this.mockResponse = new MockResponse();
+
+        this.mockRequestOptions = {
+            body: { id: 1 },
+            params: { relation: 'things' }
+        }
     });
 
     describe('to an existing model', function() {
 
         beforeEach(function() {
-            var $this = this;
-            this.mockCollection = {
-                create: function() {}
-            };
-            this.mockModel = MockModel.get('items', {
-                related: function() {
-                    return $this.mockCollection
-                }
-            });
-            this.mockRelModel = MockModel.get('things');
             this.k.expose(this.mockModel);
             this.k.expose(this.mockRelModel);
-            this.mockResponse = new MockResponse();
             spyOn(this.mockCollection, 'create');
             spyOn(this.mockResponse, 'send');
             var fn = this.mockApp.postHandlers['/items/:identifier/:relation'];
-            fn(new MockRequest({
-                    body: { id: 1 },
-                    params: { relation: 'things' }
-                }),
-                this.mockResponse
-            );
+            fn(new MockRequest(this.mockRequestOptions), this.mockResponse);
         });
 
         it('should call create on the related collection ', function() {
@@ -52,28 +54,14 @@ describe('POST request to create a relation', function() {
 
         beforeEach(function() {
             var $this = this;
-            this.mockCollection = {
-                create: function() {}
-            };
-            this.mockModel = MockModel.get('items', {
-                related: function() {
-                    return $this.mockCollection
-                }
-            });
-            this.mockRelModel = MockModel.get('things');
             this.k.expose(this.mockModel);
             this.k.expose(this.mockRelModel);
-            this.mockResponse = new MockResponse();
             this.mockBody = {};
             spyOn(this.mockCollection, 'create');
             spyOn(this.mockResponse, 'send');
             var fn = this.mockApp.postHandlers['/items/:identifier/:relation'];
-            fn(new MockRequest({
-                    body: $this.mockBody,
-                    params: { relation: 'things' }
-                }),
-                this.mockResponse
-            );
+            this.mockRequestOptions.body = this.mockBody;
+            fn(new MockRequest(this.mockRequestOptions), this.mockResponse);
         });
 
         it('should call create on the related collection ', function() {
@@ -97,14 +85,6 @@ describe('POST request to create a relation', function() {
         beforeEach(function() {
             var $this = this;
             this.mockFetchPromise = new MockPromise([null]);
-            this.mockCollection = {
-                create: function() {}
-            };
-            this.mockModel = MockModel.get('items', {
-                related: function() {
-                    return $this.mockCollection
-                }
-            });
             this.mockRelModel = MockModel.get('things', {
                 fetch: function() {
                     return $this.mockFetchPromise;
@@ -112,16 +92,10 @@ describe('POST request to create a relation', function() {
             });
             this.k.expose(this.mockModel);
             this.k.expose(this.mockRelModel);
-            this.mockResponse = new MockResponse();
             spyOn(this.mockCollection, 'create');
             spyOn(this.mockResponse, 'send');
             var fn = this.mockApp.postHandlers['/items/:identifier/:relation'];
-            fn(new MockRequest({
-                    body: { id: 1 },
-                    params: { relation: 'things' }
-                }),
-                this.mockResponse
-            );
+            fn(new MockRequest(this.mockRequestOptions), this.mockResponse);
         });
 
         it('should not call create on the related collection', function() {
