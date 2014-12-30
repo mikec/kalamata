@@ -92,4 +92,52 @@ describe('POST request to create a relation', function() {
 
     });
 
+    describe('to an existing model that is not found', function() {
+
+        beforeEach(function() {
+            var $this = this;
+            this.mockFetchPromise = new MockPromise([null]);
+            this.mockCollection = {
+                create: function() {}
+            };
+            this.mockModel = MockModel.get('items', {
+                related: function() {
+                    return $this.mockCollection
+                }
+            });
+            this.mockRelModel = MockModel.get('things', {
+                fetch: function() {
+                    return $this.mockFetchPromise;
+                }
+            });
+            this.k.expose(this.mockModel);
+            this.k.expose(this.mockRelModel);
+            this.mockResponse = new MockResponse();
+            spyOn(this.mockCollection, 'create');
+            spyOn(this.mockResponse, 'send');
+            var fn = this.mockApp.postHandlers['/items/:identifier/:relation'];
+            fn(new MockRequest({
+                    body: { id: 1 },
+                    params: { relation: 'things' }
+                }),
+                this.mockResponse
+            );
+        });
+
+        it('should not call create on the related collection', function() {
+            expect(this.mockCollection.create).not.toHaveBeenCalled();
+        });
+
+        it('should throw an error', function() {
+            expect(this.mockFetchPromise.thrownError.message)
+                            .toBe('Create relationship failed: ' +
+                                    'Could not find things model {"id":1}');
+        });
+
+        it('should not send a response', function() {
+            expect(this.mockResponse.send).not.toHaveBeenCalled();
+        });
+
+    });
+
 });

@@ -158,7 +158,13 @@ kalamata.expose = function(model, _opts_) {
                 if(req.body[rId]) {
                     // fetch and add an existing model
                     return (new rModel(req.body)).fetch().then(function(relMod) {
-                        return relCollection.create(relMod);
+                        if(relMod) {
+                            return relCollection.create(relMod);
+                        } else {
+                            throw new Error('Create relationship failed: ' +
+                                                'Could not find ' + rel +
+                                                ' model ' + JSON.stringify(req.body));
+                        }
                     });
                 } else {
                     // create a new model
