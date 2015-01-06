@@ -181,6 +181,35 @@ describe('POST request to create a relation', function() {
 
     });
 
+    describe('with a before hook on the base model', function() {
+
+        describe('that returns nothing', function() {
+
+            beforeEach(function() {
+                var $this = this;
+                this.k.expose(this.mockModel);
+                this.k.expose(this.mockRelModel);
+                this.relHookCalled;
+                this.k.beforeRelateItem(function() {
+                    $this.relHookCalled = true;
+                });
+                spyOn(this.mockResponse, 'send');
+                var fn = this.mockApp.postHandlers['/items/:identifier/:relation'];
+                fn(new MockRequest(this.mockRequestOptions), this.mockResponse);
+            });
+
+            it('should call the hook function', function() {
+                expect(this.relHookCalled).toBeTruthy();
+            });
+
+            it('should send a response', function() {
+                expect(this.mockResponse.send).toHaveBeenCalled();
+            });
+
+        });
+
+    });
+
     describe('with an after hook', function() {
 
         describe('that returns nothing', function() {
@@ -191,6 +220,35 @@ describe('POST request to create a relation', function() {
                 this.k.expose(this.mockRelModel);
                 this.relHookCalled;
                 this.k.afterRelateThing(function() {
+                    $this.relHookCalled = true;
+                });
+                spyOn(this.mockResponse, 'send');
+                var fn = this.mockApp.postHandlers['/items/:identifier/:relation'];
+                fn(new MockRequest(this.mockRequestOptions), this.mockResponse);
+            });
+
+            it('should call the hook function', function() {
+                expect(this.relHookCalled).toBeTruthy();
+            });
+
+            it('should send a response', function() {
+                expect(this.mockResponse.send).toHaveBeenCalled();
+            });
+
+        });
+
+    });
+
+    describe('with an after hook on the base model', function() {
+
+        describe('that returns nothing', function() {
+
+            beforeEach(function() {
+                var $this = this;
+                this.k.expose(this.mockModel);
+                this.k.expose(this.mockRelModel);
+                this.relHookCalled;
+                this.k.afterRelateItem(function() {
                     $this.relHookCalled = true;
                 });
                 spyOn(this.mockResponse, 'send');
