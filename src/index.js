@@ -183,8 +183,8 @@ kalamata.expose = function(model, _opts_) {
                         }
                     });
                 } else {
-                    // create a new model
-                    return relCollection.create(req.body);
+                    throw new Error('Create relationship failed: ' +
+                                        rId + ' property not provided');
                 }
             }).then(function() {
                 sendResponse(res, null);

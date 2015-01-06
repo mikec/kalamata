@@ -54,6 +54,14 @@ describe('POST request to create a relation', function() {
 
         beforeEach(function() {
             var $this = this;
+            this.mockFetchPromise = new MockPromise([{
+                related: function() {}
+            }]);
+            this.mockModel = MockModel.get('items', {
+                fetch: function() {
+                    return $this.mockFetchPromise;
+                }
+            });
             this.k.expose(this.mockModel);
             this.k.expose(this.mockRelModel);
             this.mockBody = {};
@@ -64,18 +72,18 @@ describe('POST request to create a relation', function() {
             fn(new MockRequest(this.mockRequestOptions), this.mockResponse);
         });
 
-        it('should call create on the related collection ', function() {
-            expect(this.mockCollection.create).toHaveBeenCalled();
+        it('should not call create on the related collection ', function() {
+            expect(this.mockCollection.create).not.toHaveBeenCalled();
         });
 
-        it('should pass the request body to the create call',
-        function() {
-            expect(this.mockCollection.create.calls.argsFor(0)[0])
-                    .toBe(this.mockBody);
+        it('should not send a response', function() {
+            expect(this.mockResponse.send).not.toHaveBeenCalled();
         });
 
-        it('should send a response', function() {
-            expect(this.mockResponse.send).toHaveBeenCalled();
+        it('should throw an error', function() {
+            expect(this.mockFetchPromise.thrownError.message)
+                            .toBe('Create relationship failed: ' +
+                                    'id property not provided');
         });
 
     });
