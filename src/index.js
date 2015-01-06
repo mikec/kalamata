@@ -154,6 +154,7 @@ kalamata.expose = function(model, _opts_) {
             var rModel = modelMap[rel];
             var rId = identifierMap[rel];
             var mod = new model(getModelAttrs(req));
+            var relMod;
 
             var beforeResult = runMultiHooks(
                                     [hooks[req.params.relation].before.relate,
@@ -173,9 +174,10 @@ kalamata.expose = function(model, _opts_) {
                 var relCollection = m.related(rel);
                 if(req.body[rId]) {
                     // fetch and add an existing model
-                    return (new rModel(req.body)).fetch().then(function(relMod) {
-                        if(relMod) {
-                            return relCollection.create(relMod);
+                    return (new rModel(req.body)).fetch().then(function(rMod) {
+                        if(rMod) {
+                            relMod = rMod;
+                            return relCollection.create(rMod);
                         } else {
                             throw new Error('Create relationship failed: ' +
                                                 'Could not find ' + rel +
@@ -186,6 +188,13 @@ kalamata.expose = function(model, _opts_) {
                     throw new Error('Create relationship failed: ' +
                                         rId + ' property not provided');
                 }
+            }).then(function() {
+                var afterResult = runMultiHooks(
+                                    [hooks[req.params.relation].after.relate,
+                                        [req, res, mod, relMod]],
+                                    [afterHooks.relate,
+                                        [req, res, mod, relMod]]);
+                return afterResult.promise || null;
             }).then(function() {
                 sendResponse(res, null);
             }).catch(next);
