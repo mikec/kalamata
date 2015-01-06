@@ -246,6 +246,34 @@ true
 ```
 
 
+#### GET `/users/:identifier/things`
+
+Gets an array of things related to a user
+
+```js
+/*
+ * GET `/users/2/things`
+ */
+
+// response:
+[{ "id": 3, "name": "thing3" },{ "id": 4, "name": "thing4" }]
+
+```
+
+
+#### POST `/users/:identifier/things`
+
+Relates a thing to a user
+
+```js
+/*
+ * POST `/users/2/things` { "id": "3" }
+ */
+
+// response:
+{}
+
+```
 
 Hooks
 -------
@@ -256,20 +284,22 @@ Hooks let you extend and override default endpoint behaviors.
 
 Hook names are generated based on endpoint configurations. This list is based on a `/users` endpoint where `modelName = User` and `collectionName = Users`
 
-| Hook Name                 | Request                   | Arguments                     |
-| :-------------------------| :------------------------ | :---------------------------- |
-| `beforeGetUsers`          | GET `/users`              | [req, res, userModel]         |
-| `afterGetUsers`           | GET `/users`              | [req, res, userCollection]    |
-| `beforeGetUser`           | GET `/users/:id`          | [req, res, userModel]         |
-| `afterGetUser`            | GET `/users/:id`          | [req, res, userModel]         |
-| `beforeCreateUser`        | POST `/users`             | [req, res, userModel]         |
-| `afterCreateUser`         | POST `/users`             | [req, res, userModel]         |
-| `beforeUpdateUser`        | PUT `/users/:id`          | [req, res, userModel]         |
-| `afterUpdateUser`         | PUT `/users/:id`          | [req, res, userModel]         |
-| `beforeDeleteUser`        | DELETE `/users/:id`       | [req, res, userModel]         |
-| `afterDeleteUser`         | DELETE `/users/:id`       | [req, res, userModel]         |
-| `beforeGetRelatedThings`  | GET `/users/:id/things`   | [req, res, thingsModel]       |
-| `afterGetRelatedThings`   | GET `/users/:id/things`   | [req, res, thingsCollection]  |
+| Hook Name                 | Request                   | Arguments                             |
+| :-------------------------| :------------------------ | :------------------------------------ |
+| `beforeGetUsers`          | GET `/users`              | [req, res, userModel]                 |
+| `afterGetUsers`           | GET `/users`              | [req, res, userCollection]            |
+| `beforeGetUser`           | GET `/users/:id`          | [req, res, userModel]                 |
+| `afterGetUser`            | GET `/users/:id`          | [req, res, userModel]                 |
+| `beforeCreateUser`        | POST `/users`             | [req, res, userModel]                 |
+| `afterCreateUser`         | POST `/users`             | [req, res, userModel]                 |
+| `beforeUpdateUser`        | PUT `/users/:id`          | [req, res, userModel]                 |
+| `afterUpdateUser`         | PUT `/users/:id`          | [req, res, userModel]                 |
+| `beforeDeleteUser`        | DELETE `/users/:id`       | [req, res, userModel]                 |
+| `afterDeleteUser`         | DELETE `/users/:id`       | [req, res, userModel]                 |
+| `beforeGetRelatedThings`  | GET `/users/:id/things`   | [req, res, thingModel]                |
+| `afterGetRelatedThings`   | GET `/users/:id/things`   | [req, res, thingsCollection]          |
+| `beforeRelatedThing`      | POST `/users/:id/things`  | [req, res, userModel]                 |
+| `afterRelateThing`        | POST `/users/:id/things`  | [req, res, userModel, thingModel]     |
 
 `req` and `res` are an Express [request](http://expressjs.com/4x/api.html#request) and [response](http://expressjs.com/4x/api.html#response)
 
