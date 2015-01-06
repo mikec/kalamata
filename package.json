@@ -28,7 +28,8 @@
     "grunt-jasmine-node": "git://github.com/fiznool/grunt-jasmine-node.git#c773421b608ce944454cb540a6e66575d2df09c6"
   },
   "dependencies": {
-    "body-parser": "^1.9.0"
+    "body-parser": "^1.9.0",
+    "bluebird": "^2.3.6"
   },
   "scripts": {
     "test": "grunt"

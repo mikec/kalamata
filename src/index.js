@@ -1,4 +1,5 @@
 var bodyParser = require('body-parser');
+var Promise = require("bluebird");
 var app, options;
 var hooks = {};
 var modelMap = {};
@@ -153,7 +154,22 @@ kalamata.expose = function(model, _opts_) {
             var rModel = modelMap[rel];
             var rId = identifierMap[rel];
             var mod = new model(getModelAttrs(req));
-            mod.fetch().then(function(m) {
+
+            var beforeResult = runMultiHooks(
+                                    [hooks[req.params.relation].before.relate,
+                                        [req, res, mod]],
+                                    [beforeHooks.relate,
+                                        [req, res, mod]]);
+            if(res.headersSent) return;
+
+            var promise;
+            if(beforeResult.promise) {
+                promise = beforeResult.promise;
+            } else {
+                promise = mod.fetch();
+            }
+
+            promise.then(function(m) {
                 var relCollection = m.related(rel);
                 if(req.body[rId]) {
                     // fetch and add an existing model
@@ -221,6 +237,27 @@ kalamata.expose = function(model, _opts_) {
         });
     }
 
+    function runMultiHooks() {
+        var promiseResults = [];
+        for(var i in arguments) {
+            var res = runHooks.apply(null, arguments[i]);
+            if(res.promise) {
+                promiseResults.push(res.promise);
+            }
+        }
+        if(promiseResults.length > 0) {
+            var ret = Promise.all(promiseResults).then(function() {
+                var args = arguments[0];
+                return new Promise(function(resolve) {
+                    resolve.apply(null, args);
+                });
+            });
+            return { promise: ret };
+        } else {
+            return {};
+        }
+    }
+
     function runHooks(fnArray, args) {
         var result;
         for(var i in fnArray) {
@@ -242,7 +279,8 @@ kalamata.expose = function(model, _opts_) {
             getRelated: [],
             create: [],
             update: [],
-            del: []
+            del: [],
+            relate: []
         };
     }
 
@@ -255,6 +293,7 @@ kalamata.expose = function(model, _opts_) {
         createHookFunction('beforeCreate' + opts.modelName, 'before', 'create');
         createHookFunction('beforeUpdate' + opts.modelName, 'before', 'update');
         createHookFunction('beforeDelete' + opts.modelName, 'before', 'del');
+        createHookFunction('beforeRelate' + opts.modelName, 'before', 'relate');
         createHookFunction('afterGet' + opts.collectionName,
                                 'after', 'getCollection');
         createHookFunction('afterGetRelated' + opts.collectionName,
@@ -263,6 +302,7 @@ kalamata.expose = function(model, _opts_) {
         createHookFunction('afterCreate' + opts.modelName, 'after', 'create');
         createHookFunction('afterUpdate' + opts.modelName, 'after', 'update');
         createHookFunction('afterDelete' + opts.modelName, 'after', 'del');
+        createHookFunction('afterRelate' + opts.modelName, 'after', 'relate');
     }
 
     function createHookFunction(fnName, prefix, type) {

@@ -114,4 +114,63 @@ describe('POST request to create a relation', function() {
 
     });
 
+
+    describe('with a before hook', function() {
+
+        describe('that returns nothing', function() {
+
+            beforeEach(function() {
+                var $this = this;
+                this.k.expose(this.mockModel);
+                this.k.expose(this.mockRelModel);
+                this.relHookCalled;
+                this.k.beforeRelateThing(function() {
+                    $this.relHookCalled = true;
+                });
+                spyOn(this.mockResponse, 'send');
+                var fn = this.mockApp.postHandlers['/items/:identifier/:relation'];
+                fn(new MockRequest(this.mockRequestOptions), this.mockResponse);
+            });
+
+            it('should call the hook function', function() {
+                expect(this.relHookCalled).toBeTruthy();
+            });
+
+            it('should send a response', function() {
+                expect(this.mockResponse.send).toHaveBeenCalled();
+            });
+
+        });
+
+        describe('that throws an error', function() {
+
+            beforeEach(function() {
+                var $this = this;
+                this.k.expose(this.mockModel);
+                this.k.expose(this.mockRelModel);
+                this.mockErr;
+                this.k.beforeRelateThing(function() {
+                    throw new Error('mock error');
+                });
+                spyOn(this.mockResponse, 'send');
+                var fn = this.mockApp.postHandlers['/items/:identifier/:relation'];
+                try {
+                    fn(new MockRequest(this.mockRequestOptions), this.mockResponse);
+                } catch(err) {
+                    this.mockErr = err;
+                }
+            });
+
+            it('should call the hook function', function() {
+                expect(this.mockErr.message).toBe('mock error');
+            });
+
+            it('should not send a response', function() {
+                expect(this.mockResponse.send).not.toHaveBeenCalled();
+            });
+
+        });
+
+    });
+
 });
