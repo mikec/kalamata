@@ -57,6 +57,19 @@ kalamata.expose = function(model, _opts_) {
                                 capitalize(opts.modelName) :
                                 modelName(opts.endpointName);
 
+    modelMap[decapitalize(opts.modelName)] =
+        modelMap[decapitalize(opts.collectionName)] = model;
+    identifierMap[decapitalize(opts.modelName)] =
+        identifierMap[decapitalize(opts.collectionName)] = opts.identifier;
+
+    hooks[decapitalize(opts.modelName)] = hooks[decapitalize(opts.collectionName)] = {
+        before: hookArrays(),
+        after: hookArrays()
+    };
+
+    var beforeHooks = hooks[decapitalize(opts.modelName)].before;
+    var afterHooks = hooks[decapitalize(opts.modelName)].after;
+
     createHookFunctions();
     configureEndpoints();
 
@@ -171,13 +184,19 @@ kalamata.expose = function(model, _opts_) {
             }
 
             promise.then(function(m) {
-                var relCollection = m.related(rel);
                 if(req.body[rId]) {
                     // fetch and add an existing model
                     return (new rModel(req.body)).fetch().then(function(rMod) {
                         if(rMod) {
                             relMod = rMod;
-                            return relCollection.create(rMod);
+                            var relCollection = m.related(rel);
+                            if(relCollection.create) {
+                                // for hasMany relations
+                                return relCollection.create(rMod);
+                            } else {
+                                // for belongsTo relations, reverse it
+                                return rMod.related(opts.endpointName).create(m);
+                            }
                         } else {
                             throw new Error('Create relationship failed: ' +
                                                 'Could not find ' + rel +
@@ -195,6 +214,7 @@ kalamata.expose = function(model, _opts_) {
                                     [afterHooks.relate,
                                         [req, res, mod, relMod]]);
                 return afterResult.promise || null;
+                return null;
             }).then(function() {
                 sendResponse(res, null);
             }).catch(next);
@@ -393,6 +413,10 @@ kalamata.expose = function(model, _opts_) {
                     endpointName.substr(0,endpointName.length - 1) :
                     endpointName);
         return capitalize(endpointName);
+    }
+
+    function decapitalize(str) {
+        return str.charAt(0).toLowerCase() + str.slice(1);
     }
 
     function capitalize(str) {
