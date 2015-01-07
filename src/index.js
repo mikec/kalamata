@@ -4,6 +4,8 @@ var app, options;
 var hooks = {};
 var modelMap = {};
 var identifierMap = {};
+var modelNameMap = {};
+var collectionNameMap = {};
 
 var kalamata = module.exports = function(_app_, _options_) {
     app = _app_;
@@ -57,18 +59,23 @@ kalamata.expose = function(model, _opts_) {
                                 capitalize(opts.modelName) :
                                 modelName(opts.endpointName);
 
-    modelMap[decapitalize(opts.modelName)] =
-        modelMap[decapitalize(opts.collectionName)] = model;
-    identifierMap[decapitalize(opts.modelName)] =
-        identifierMap[decapitalize(opts.collectionName)] = opts.identifier;
+    var modelNameLower = decapitalize(opts.modelName);
+    var collectionNameLower = decapitalize(opts.collectionName);
 
-    hooks[decapitalize(opts.modelName)] = hooks[decapitalize(opts.collectionName)] = {
+    modelMap[modelNameLower] =
+        modelMap[collectionNameLower] = model;
+    identifierMap[modelNameLower] =
+        identifierMap[collectionNameLower] = opts.identifier;
+    modelNameMap[collectionNameLower] = modelNameLower;
+    collectionNameMap[modelNameLower] = collectionNameLower;
+
+    hooks[modelNameLower] = hooks[collectionNameLower] = {
         before: hookArrays(),
         after: hookArrays()
     };
 
-    var beforeHooks = hooks[decapitalize(opts.modelName)].before;
-    var afterHooks = hooks[decapitalize(opts.modelName)].after;
+    var beforeHooks = hooks[modelNameLower].before;
+    var afterHooks = hooks[modelNameLower].after;
 
     createHookFunctions();
     configureEndpoints();
@@ -263,6 +270,46 @@ kalamata.expose = function(model, _opts_) {
             }).then(function() {
                 sendResponse(res, true);
             }).catch(next);
+        });
+
+        app.delete(options.apiRoot + opts.endpointName + '/:identifier/:relation',
+        function(req, res, next) {
+            var rel = req.params.relation;
+            var mod = new model(getModelAttrs(req));
+            mod.fetch().then(function(m) {
+                var fKey = m[rel]().relatedData.foreignKey;
+                return m.set(fKey, null).save();
+            }).then(function() {
+                sendResponse(res, true);
+            }).catch(next);
+        });
+
+        app.delete(options.apiRoot + opts.endpointName + '/:identifier/:relation/:rIdentifier',
+        function(req, res, next) {
+            var rel = req.params.relation;
+            var rModel = modelMap[rel];
+            var rId = identifierMap[rel];
+            var mod = new model(getModelAttrs(req));
+            var relMod;
+
+            mod.fetch().then(function(m) {
+                var rModAttrs = {};
+                rModAttrs[rId] = req.params.rIdentifier;
+                return (new rModel(rModAttrs)).fetch().then(function(rMod) {
+                    if(rMod) {
+                        var modelName = modelNameMap[opts.endpointName];
+                        var fKey = rMod[modelName]().relatedData.foreignKey;
+                        return rMod.set(fKey, null).save();
+                    } else {
+                        throw new Error('Delete relationship failed: ' +
+                                                'Could not find ' + rel +
+                                                ' model ' + JSON.stringify(rModAttrs));
+                    }
+                });
+            }).then(function() {
+                sendResponse(res, true);
+            }).catch(next);
+
         });
     }
 
