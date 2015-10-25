@@ -29,6 +29,14 @@ kalamata.expose = function(model, _opts_) {
     if(!opts.identifier) opts.identifier = 'id';
     if(!opts.endpointName) opts.endpointName = model.forge().tableName;
 
+    for(var p in _opts_) {
+        if(validOpts[p]) {
+            opts[p] = _opts_[p];
+        } else {
+            throw new Error('Invalid option: ' + p);
+        }
+    }
+
     modelMap[opts.endpointName] = model;
 
     hooks[opts.endpointName] = {
@@ -38,14 +46,6 @@ kalamata.expose = function(model, _opts_) {
 
     var beforeHooks = hooks[opts.endpointName].before;
     var afterHooks = hooks[opts.endpointName].after;
-
-    for(var p in _opts_) {
-        if(validOpts[p]) {
-            opts[p] = _opts_[p];
-        } else {
-            throw new Error('Invalid option: ' + p);
-        }
-    }
 
     opts.collectionName = opts.collectionName ?
                                 capitalize(opts.collectionName) :
