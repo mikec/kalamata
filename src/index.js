@@ -30,8 +30,6 @@ kalamata.expose = function(model, _opts_) {
     };
 
     var opts = {};
-    if(!opts.identifier) opts.identifier = 'id';
-    if(!opts.endpointName) opts.endpointName = model.forge().tableName;
 
     for(var p in _opts_) {
         if(validOpts[p]) {
@@ -40,6 +38,13 @@ kalamata.expose = function(model, _opts_) {
             throw new Error('Invalid option: ' + p);
         }
     }
+
+    if(!opts.identifier) opts.identifier = 'id';
+    if(!opts.endpointName) opts.endpointName = model.forge().tableName;
+    if(!opts.modelName) opts.modelName = capitalize(modelName(model.forge().tableName));
+    if(!opts.collectionName) opts.collectionName = collectionName(model.forge().tableName);
+    opts.modelName = capitalize(opts.modelName);
+    opts.collectionName = capitalize(opts.collectionName);
 
     modelMap[opts.endpointName] = model;
     identifierMap[opts.endpointName] = opts.identifier;
@@ -52,13 +57,6 @@ kalamata.expose = function(model, _opts_) {
     var beforeHooks = hooks[opts.endpointName].before;
     var afterHooks = hooks[opts.endpointName].after;
 
-    opts.collectionName = opts.collectionName ?
-                                capitalize(opts.collectionName) :
-                                collectionName(opts.endpointName);
-    opts.modelName = opts.modelName ?
-                                capitalize(opts.modelName) :
-                                modelName(opts.endpointName);
-
     var modelNameLower = decapitalize(opts.modelName);
     var collectionNameLower = decapitalize(opts.collectionName);
 
@@ -68,14 +66,6 @@ kalamata.expose = function(model, _opts_) {
         identifierMap[collectionNameLower] = opts.identifier;
     modelNameMap[collectionNameLower] = modelNameLower;
     collectionNameMap[modelNameLower] = collectionNameLower;
-
-    hooks[modelNameLower] = hooks[collectionNameLower] = {
-        before: hookArrays(),
-        after: hookArrays()
-    };
-
-    var beforeHooks = hooks[modelNameLower].before;
-    var afterHooks = hooks[modelNameLower].after;
 
     createHookFunctions();
     configureEndpoints();
