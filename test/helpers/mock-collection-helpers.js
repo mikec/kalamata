@@ -1,6 +1,0 @@
-
-global.MockCollection = {
-
-    create: function() {}
-
-};
