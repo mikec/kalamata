@@ -45,11 +45,8 @@ module.exports = function(model, opts) {
 
   function _fetch_middleware(req, res, next) {
     var mod = new model({id: req.params.id})
-    mod.fetch()
+    mod.fetch({require: true})
     .then(function(fetched) {
-      if(!fetched) {
-        return next(new Error(404))
-      }
       req.fetched = fetched
       next()
     })

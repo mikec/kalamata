@@ -22,6 +22,9 @@ describe('app', (suite) => {
   const k = Kalamata(db.models.User)
   k.init_app(app)  // create the REST routes
   app.use((err, req, res, next) => {
+    if (err.message === 'EmptyResponse') {
+      return res.status(404).send(err)
+    }
     const statusCode = parseInt(err.message)
     res.status(isNaN(statusCode) ? 400 : statusCode).send(err)
     console.log(err)
