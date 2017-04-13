@@ -27,3 +27,4 @@ module.exports = (g)->
         return done('shall 404 but have not') if not err
         res.should.have.status(404)
         done()
+      return
