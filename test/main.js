@@ -59,7 +59,6 @@ describe('app', (suite) => {
     './post',
     './put',
     './get',
-    './relations',
     './del'
   ]
   submodules.forEach((i) => {

@@ -14,6 +14,17 @@ module.exports = function(model, opts) {
     next()
   }
 
+  function _load_query(req, res, next) {
+    if(req.query.load) {
+      try {
+        req.loadquery = req.query.load.split(',')
+      } catch(err) {
+        return next(new Error('could not parse query.load: ' + req.query.load))
+      }
+    }
+    next()
+  }
+
   function _get_relation_middleware(req, res, next) {
     res.json(req.fetched.related(req.params.relation))
     next()
@@ -24,7 +35,11 @@ module.exports = function(model, opts) {
     if(req.listquery) {
       mod = mod.where(req.listquery)
     }
-    mod.fetchAll()
+    const fetchopts = {}
+    if (req.loadquery) {
+      fetchopts.withRelated = req.loadquery
+    }
+    mod.fetchAll(fetchopts)
     .then(function(collection) {
       res.json(collection)
       next()
@@ -64,10 +79,14 @@ module.exports = function(model, opts) {
   function _fetch_middleware(req, res, next) {
     var mod = new model({id: req.params.id})
     const fetchopts = {
-      require: true
+      require: true,
+      withRelated: []
     }
     if (req.params.relation) {
-      fetchopts.withRelated = [req.params.relation]
+      fetchopts.withRelated.push(req.params.relation)
+    }
+    if (req.loadquery) {
+      fetchopts.withRelated = fetchopts.withRelated.concat(req.loadquery)
     }
     mod.fetch(fetchopts)
     .then(function(fetched) {
@@ -95,8 +114,8 @@ module.exports = function(model, opts) {
   }
 
   function _init_app(app) {
-    app.get('/', _list_query, _list_middleware)
-    app.get('/:id', _fetch_middleware, _detail_middleware)
+    app.get('/', _list_query, _load_query, _list_middleware)
+    app.get('/:id', _load_query, _fetch_middleware, _detail_middleware)
     app.post('/', _create_middleware)
     app.put('/:id', _fetch_middleware, _update_middleware)
     app.delete('/:id', _fetch_middleware, _delete_middleware)
