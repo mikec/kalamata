@@ -11,14 +11,16 @@ debugopts =
 knex = Knex(debugopts)
 bookshelf = require('bookshelf')(knex)
 
+Thing = bookshelf.Model.extend
+  tableName: 'things'
+
 User = bookshelf.Model.extend
   tableName: 'users'
-
-Tool = bookshelf.Model.extend
-  tableName: 'tools'
+  tools: () ->
+    return this.hasMany(Thing)
 
 knex.models =
   User: User
-  Tool: Tool
+  Thing: Thing
 
 module.exports = knex

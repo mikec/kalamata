@@ -14,6 +14,11 @@ module.exports = function(model, opts) {
     next()
   }
 
+  function _get_relation_middleware(req, res, next) {
+    res.json(req.fetched.related(req.params.relation))
+    next()
+  }
+
   function _list_middleware(req, res, next) {
     let mod = new model()
     if(req.listquery) {
@@ -43,9 +48,28 @@ module.exports = function(model, opts) {
     .catch(next)
   }
 
+  function _create_relation_middleware(req, res, next) {
+    const relation = req.fetched.related(req.params.relation)
+    // for hasMany relations
+    const newitem = new relation.model(req.body)
+    relation.create(newitem)
+    .then(function(savedModel) {
+      req.savedModel = savedModel
+      res.status(201).json(savedModel)
+      next()
+    })
+    .catch(next)
+  }
+
   function _fetch_middleware(req, res, next) {
     var mod = new model({id: req.params.id})
-    mod.fetch({require: true})
+    const fetchopts = {
+      require: true
+    }
+    if (req.params.relation) {
+      fetchopts.withRelated = [req.params.relation]
+    }
+    mod.fetch(fetchopts)
     .then(function(fetched) {
       req.fetched = fetched
       next()
@@ -76,6 +100,9 @@ module.exports = function(model, opts) {
     app.post('/', _create_middleware)
     app.put('/:id', _fetch_middleware, _update_middleware)
     app.delete('/:id', _fetch_middleware, _delete_middleware)
+    // relations
+    app.get('/:id/:relation', _fetch_middleware, _get_relation_middleware)
+    app.post('/:id/:relation', _fetch_middleware, _create_relation_middleware)
   }
 
   return {
