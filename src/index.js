@@ -76,6 +76,19 @@ module.exports = function(model, opts) {
     .catch(next)
   }
 
+  function _delete_relation_middleware(req, res, next) {
+    const relation = req.fetched.related(req.params.relation)
+    relation.query({where: req.query}).fetch()
+    .then((found) => {
+      return found.invokeThen('destroy')
+    })
+    .then((deleted) => {
+      res.status(200).send('deleted')
+      next()
+    })
+    .catch(next)
+  }
+
   function _fetch_middleware(req, res, next) {
     var mod = new model({id: req.params.id})
     const fetchopts = {
@@ -122,6 +135,7 @@ module.exports = function(model, opts) {
     // relations
     app.get('/:id/:relation', _fetch_middleware, _get_relation_middleware)
     app.post('/:id/:relation', _fetch_middleware, _create_relation_middleware)
+    app.delete('/:id/:relation', _fetch_middleware, _delete_relation_middleware)
   }
 
   return {
@@ -133,6 +147,7 @@ module.exports = function(model, opts) {
     detail_middleware: _detail_middleware,
     create_middleware: _create_middleware,
     create_relation_middleware: _create_relation_middleware,
+    delete_relation_middleware: _delete_relation_middleware,
     fetch_middleware: _fetch_middleware,
     update_middleware: _update_middleware,
     delete_middleware: _delete_middleware
