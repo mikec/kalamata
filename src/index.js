@@ -125,7 +125,7 @@ module.exports = function(model, opts) {
   }
 
   return {
-    init_app: _init_app
+    init_app: _init_app,
     list_query: _list_query,
     load_query: _load_query,
     get_relation_middleware: _get_relation_middleware,
