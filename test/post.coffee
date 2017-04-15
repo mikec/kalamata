@@ -39,5 +39,6 @@ module.exports = (g)->
         res.should.have.status(201)
         res.should.be.json
         res.body.type.should.eql 'magicwand'
+        g.magicwandid = res.body.id
         done()
       return

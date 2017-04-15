@@ -19,7 +19,7 @@ module.exports = (g)->
         res.should.be.json
         res.body.tools.length.should.eql 2
         # remove magicwand
-        return r.delete("/#{g.gandalfID}/tools?type=magicwand")
+        return r.delete("/#{g.gandalfID}/tools?type=supermagicwand")
       .then (res) ->
         res.should.have.status(200)
         # verify gandalf is toolless

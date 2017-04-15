@@ -46,6 +46,6 @@ module.exports = (g)->
         res.should.be.json
         res.body.length.should.eql 1
         res.body[0].tools.length.should.eql 1
-        res.body[0].tools[0].type.should.eql 'magicwand'
+        res.body[0].tools[0].type.should.eql 'supermagicwand'
         done()
       return

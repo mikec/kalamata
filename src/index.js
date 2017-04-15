@@ -77,13 +77,31 @@ module.exports = function(model, opts) {
   }
 
   function _delete_relation_middleware(req, res, next) {
+    req.foundrelated.invokeThen('destroy')
+    .then((deleted) => {
+      res.status(200).send('deleted')
+      next()
+    })
+    .catch(next)
+  }
+
+  function _update_relation_middleware(req, res, next) {
+    req.foundrelated.map((i) => {
+      i.set(req.body)   // updated values
+    })
+    req.foundrelated.invokeThen('save')
+    .then((saved) => {
+      res.status(200).send('saved')
+      next()
+    })
+    .catch(next)
+  }
+
+  function _load_related_middleware(req, res, next) {
     const relation = req.fetched.related(req.params.relation)
     relation.query({where: req.query}).fetch()
     .then((found) => {
-      return found.invokeThen('destroy')
-    })
-    .then((deleted) => {
-      res.status(200).send('deleted')
+      req.foundrelated = found
       next()
     })
     .catch(next)
@@ -135,7 +153,8 @@ module.exports = function(model, opts) {
     // relations
     app.get('/:id/:relation', _fetch_middleware, _get_relation_middleware)
     app.post('/:id/:relation', _fetch_middleware, _create_relation_middleware)
-    app.delete('/:id/:relation', _fetch_middleware, _delete_relation_middleware)
+    app.put('/:id/:relation', _fetch_middleware, _load_related_middleware, _update_relation_middleware)
+    app.delete('/:id/:relation', _fetch_middleware, _load_related_middleware, _delete_relation_middleware)
   }
 
   return {
@@ -148,6 +167,7 @@ module.exports = function(model, opts) {
     create_middleware: _create_middleware,
     create_relation_middleware: _create_relation_middleware,
     delete_relation_middleware: _delete_relation_middleware,
+    load_related_middleware: _load_related_middleware,
     fetch_middleware: _fetch_middleware,
     update_middleware: _update_middleware,
     delete_middleware: _delete_middleware
