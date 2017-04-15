@@ -6,7 +6,7 @@ module.exports = (g)->
 
   addr = g.baseurl
 
-  describe 'post routes', ->
+  describe 'get routes', ->
 
     it 'must get all', (done) ->
       chai.request(g.baseurl).get('/').end (err, res) ->
