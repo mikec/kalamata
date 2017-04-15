@@ -126,6 +126,16 @@ module.exports = function(model, opts) {
 
   return {
     init_app: _init_app
+    list_query: _list_query,
+    load_query: _load_query,
+    get_relation_middleware: _get_relation_middleware,
+    list_middleware: _list_middleware,
+    detail_middleware: _detail_middleware,
+    create_middleware: _create_middleware,
+    create_relation_middleware: _create_relation_middleware,
+    fetch_middleware: _fetch_middleware,
+    update_middleware: _update_middleware,
+    delete_middleware: _delete_middleware
   }
 
 }
