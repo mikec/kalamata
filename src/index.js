@@ -91,7 +91,7 @@ module.exports = function(model, opts) {
     })
     req.foundrelated.invokeThen('save')
     .then((saved) => {
-      res.status(200).send('saved')
+      res.status(200).json(saved)
       next()
     })
     .catch(next)
