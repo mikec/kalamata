@@ -4,23 +4,19 @@ module.exports = function(model, opts) {
   opts = opts || {}
 
   function _list_query(req, res, next) {
-    if(req.query.where) {
-      try {
-        req.listquery = parseJSON(req.query.where)
-      } catch(err) {
-        return next(new Error('Could not parse JSON: ' + req.query.where))
-      }
+    try {
+      req.listquery = req.query.where ? parseJSON(req.query.where) : {}
+    } catch(err) {
+      return next(new Error('Could not parse JSON: ' + req.query.where))
     }
     next()
   }
 
   function _load_query(req, res, next) {
-    if(req.query.load) {
-      try {
-        req.loadquery = req.query.load.split(',')
-      } catch(err) {
-        return next(new Error('could not parse query.load: ' + req.query.load))
-      }
+    try {
+      req.loadquery = req.query.load ? req.query.load.split(',') : []
+    } catch(err) {
+      return next(new Error('could not parse query.load: ' + req.query.load))
     }
     next()
   }
