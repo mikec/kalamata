@@ -168,6 +168,7 @@ module.exports = function(model, opts) {
     create_relation_middleware: _create_relation_middleware,
     delete_relation_middleware: _delete_relation_middleware,
     load_related_middleware: _load_related_middleware,
+    update_relation_middleware: _update_relation_middleware,
     fetch_middleware: _fetch_middleware,
     update_middleware: _update_middleware,
     delete_middleware: _delete_middleware
