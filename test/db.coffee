@@ -10,6 +10,7 @@ debugopts =
 
 knex = Knex(debugopts)
 bookshelf = require('bookshelf')(knex)
+bookshelf.plugin('pagination')
 
 Thing = bookshelf.Model.extend
   tableName: 'things'

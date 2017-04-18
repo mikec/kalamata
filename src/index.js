@@ -21,6 +21,31 @@ module.exports = function(model, opts) {
     next()
   }
 
+  function _extract_paging(req) { // default pageinfo extractor
+    return {
+      page: req.query.page,
+      pagesize: req.query.pagesize
+    }
+  }
+
+  function _paging_query(req, res, next) {
+    const pinfo = opts.pageinfo_extractor ?
+      opts.pageinfo_extractor(req) : _extract_paging(req)
+    const page = parseInt(pinfo.page)
+    if (pinfo.page && (isNaN(page) || page <= 0)) {
+      return next(new Error('wrong page'))
+    }
+    const pagesize = parseInt(pinfo.pagesize)
+    if (pinfo.pagesize && (isNaN(pagesize) || pagesize <= 0)) {
+      return next(new Error('wrong pagesize'))
+    }
+    if (pinfo.page) {
+      req.page = page
+      req.pagesize = pagesize
+    }
+    next()
+  }
+
   function _get_relation_middleware(req, res, next) {
     res.json(req.fetched.related(req.params.relation))
     next()
@@ -29,14 +54,18 @@ module.exports = function(model, opts) {
   function _list_middleware(req, res, next) {
     let mod = new model()
     if(req.listquery) {
-      mod = mod.where(req.listquery)
+      mod = mod.query({where: req.listquery})
     }
     const fetchopts = {}
     if (req.loadquery) {
       fetchopts.withRelated = req.loadquery
     }
-    mod.fetchAll(fetchopts)
-    .then(function(collection) {
+    if (req.page) {
+      fetchopts.page = req.page
+      fetchopts.pageSize = req.pagesize
+    }
+    const fetchMethod = req.page === undefined ? mod.fetchAll : mod.fetchPage
+    fetchMethod.bind(mod)(fetchopts).then(function(collection) {
       res.json(collection)
       next()
     })
@@ -141,7 +170,7 @@ module.exports = function(model, opts) {
   }
 
   function _init_app(app) {
-    app.get('/', _list_query, _load_query, _list_middleware)
+    app.get('/', _list_query, _paging_query, _load_query, _list_middleware)
     app.get('/:id', _load_query, _fetch_middleware, _detail_middleware)
     app.post('/', _create_middleware)
     app.put('/:id', _fetch_middleware, _update_middleware)
@@ -167,7 +196,8 @@ module.exports = function(model, opts) {
     update_relation_middleware: _update_relation_middleware,
     fetch_middleware: _fetch_middleware,
     update_middleware: _update_middleware,
-    delete_middleware: _delete_middleware
+    delete_middleware: _delete_middleware,
+    paging_query: _paging_query
   }
 
 }

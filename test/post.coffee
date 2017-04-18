@@ -30,7 +30,7 @@ module.exports = (g)->
         done()
       return
 
-    it 'must add an magicwand to gandalf', (done) ->
+    it 'must add an magicwand and hat to gandalf', (done) ->
       chai.request(g.baseurl)
       .post("/#{g.gandalfID}/tools")
       .send({ type: 'magicwand' })
@@ -40,5 +40,13 @@ module.exports = (g)->
         res.should.be.json
         res.body.type.should.eql 'magicwand'
         g.magicwandid = res.body.id
-        done()
+        chai.request(g.baseurl)
+        .post("/#{g.gandalfID}/tools")
+        .send({ type: 'hat' })
+        .end (err, res) ->
+          return done(err) if err
+          res.should.have.status(201)
+          res.should.be.json
+          res.body.type.should.eql 'hat'
+          done()
       return

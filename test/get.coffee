@@ -33,7 +33,7 @@ module.exports = (g)->
         return done(err) if err
         res.should.have.status(200)
         res.should.be.json
-        res.body.tools.length.should.eql 1
+        res.body.tools.length.should.eql 2
         done()
       return
 
@@ -45,7 +45,27 @@ module.exports = (g)->
         res.should.have.status(200)
         res.should.be.json
         res.body.length.should.eql 1
-        res.body[0].tools.length.should.eql 1
+        res.body[0].tools.length.should.eql 2
         res.body[0].tools[0].type.should.eql 'supermagicwand'
         done()
       return
+
+    it 'must list 2nd page of users', (done) ->
+      # add another user
+      chai.request(g.baseurl)
+      .post('/')
+      .send({ name: 'saruman' })
+      .end (err, res) ->
+        return done(err) if err
+        res.should.have.status(201)
+        res.should.be.json
+        g.sarumanID = res.body.id
+        # list 2nd page
+        chai.request(g.baseurl).get('/?page=2&pagesize=1').end (err, res) ->
+          return done(err) if err
+          res.should.have.status(200)
+          res.should.be.json
+          res.body.length.should.eql 1
+          res.body[0].name.should.eql 'saruman'
+          done()
+        return

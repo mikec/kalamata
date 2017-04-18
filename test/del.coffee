@@ -8,18 +8,9 @@ module.exports = (g)->
 
   describe 'delete routes', ->
 
-    it 'must delete relation (remove magicwand from gandalf)', (done) ->
-      # add another toold to gandalf
-      r.post("/#{g.gandalfID}/tools").send({ type: 'horse' })
-      .then (res) ->
-        # vrify he has 2 tools
-        return r.get("/#{g.gandalfID}?load=tools")
-      .then (res) ->
-        res.should.have.status(200)
-        res.should.be.json
-        res.body.tools.length.should.eql 2
-        # remove magicwand
-        return r.delete("/#{g.gandalfID}/tools?type=supermagicwand")
+    it 'must delete relation (remove magicwand from gandalf)', () ->
+      # remove magicwand
+      return r.delete("/#{g.gandalfID}/tools?type=supermagicwand")
       .then (res) ->
         res.should.have.status(200)
         # verify gandalf is toolless
@@ -28,8 +19,6 @@ module.exports = (g)->
         res.should.have.status(200)
         res.should.be.json
         res.body.tools.length.should.eql 1
-        done()
-      .catch(done)
 
     it 'must delete user', (done) ->
       chai.request(g.baseurl)
