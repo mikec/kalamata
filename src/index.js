@@ -46,8 +46,8 @@ module.exports = function(model, opts) {
     next()
   }
 
-  function _get_relation_middleware(req, res, next) {
-    res.json(req.fetched.related(req.params.relation))
+  function _get_related_middleware(req, res, next) {
+    res.json(req.fetchedrelated)  // just JSON back req.fetchedrelated
     next()
   }
 
@@ -122,11 +122,13 @@ module.exports = function(model, opts) {
     .catch(next)
   }
 
-  function _load_related_middleware(req, res, next) {
+  function _fetch_related_middleware(req, res, next) {
     const relation = req.fetched.related(req.params.relation)
-    relation.query({where: req.query}).fetch()
-    .then((found) => {
-      req.foundrelated = found
+    const q = relation.query({where: req.query.where || {}})
+    const fetchopts = (req.page) ? {page: req.page, pageSize: req.pagesize} : {}
+    const p = (req.page !== undefined) ? q.fetchPage(fetchopts) : q.fetch(fetchopts)
+    p.then((found) => {
+      req.fetchedrelated = found
       next()
     })
     .catch(next)
@@ -135,14 +137,10 @@ module.exports = function(model, opts) {
   function _fetch_middleware(req, res, next) {
     var mod = new model({id: req.params.id})
     const fetchopts = {
-      require: true,
-      withRelated: []
-    }
-    if (req.params.relation) {
-      fetchopts.withRelated.push(req.params.relation)
+      require: true
     }
     if (req.loadquery) {
-      fetchopts.withRelated = fetchopts.withRelated.concat(req.loadquery)
+      fetchopts.withRelated = req.loadquery
     }
     mod.fetch(fetchopts)
     .then(function(fetched) {
@@ -176,23 +174,23 @@ module.exports = function(model, opts) {
     app.put('/:id', _fetch_middleware, _update_middleware)
     app.delete('/:id', _fetch_middleware, _delete_middleware)
     // relations
-    app.get('/:id/:relation', _fetch_middleware, _get_relation_middleware)
+    app.get('/:id/:relation', _fetch_middleware, _paging_query, _fetch_related_middleware, _get_related_middleware)
     app.post('/:id/:relation', _fetch_middleware, _create_relation_middleware)
-    app.put('/:id/:relation', _fetch_middleware, _load_related_middleware, _update_relation_middleware)
-    app.delete('/:id/:relation', _fetch_middleware, _load_related_middleware, _delete_relation_middleware)
+    app.put('/:id/:relation', _fetch_middleware, _fetch_related_middleware, _update_relation_middleware)
+    app.delete('/:id/:relation', _fetch_middleware, _fetch_related_middleware, _delete_relation_middleware)
   }
 
   return {
     init_app: _init_app,
     list_query: _list_query,
     load_query: _load_query,
-    get_relation_middleware: _get_relation_middleware,
+    get_related_middleware: _get_related_middleware,
     list_middleware: _list_middleware,
     detail_middleware: _detail_middleware,
     create_middleware: _create_middleware,
     create_relation_middleware: _create_relation_middleware,
     delete_relation_middleware: _delete_relation_middleware,
-    load_related_middleware: _load_related_middleware,
+    fetch_related_middleware: _fetch_related_middleware,
     update_relation_middleware: _update_relation_middleware,
     fetch_middleware: _fetch_middleware,
     update_middleware: _update_middleware,

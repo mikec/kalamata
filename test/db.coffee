@@ -14,11 +14,13 @@ bookshelf.plugin('pagination')
 
 Thing = bookshelf.Model.extend
   tableName: 'things'
+  user: () ->
+    return this.belongsTo(User)
 
 User = bookshelf.Model.extend
   tableName: 'users'
   tools: () ->
-    return this.hasMany(Thing)
+    return this.hasMany(Thing, 'user_id')
 
 knex.models =
   User: User
