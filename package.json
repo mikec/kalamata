@@ -19,7 +19,8 @@
   ],
   "peerDependencies": {
     "express": "^4.10.0",
-    "bookshelf": "^0.10"
+    "body-parser": "^1.9.0",
+    "bookshelf": "^0.10.3"
   },
   "devDependencies": {
     "chai": "^3.5.0",
@@ -30,7 +31,6 @@
     "sqlite3": "^3.1.8"
   },
   "dependencies": {
-    "body-parser": "^1.9.0",
     "bluebird": "^3"
   },
   "scripts": {

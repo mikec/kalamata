@@ -69,3 +69,12 @@ module.exports = (g)->
           res.body[0].name.should.eql 'saruman'
           done()
         return
+
+    it 'must list 2nd page of gandalf thigs', () ->
+      return chai.request(g.baseurl)
+      .get("/#{g.gandalfID}/tools/?page=2&pagesize=1")
+      .then (res) ->
+        res.should.have.status(200)
+        res.should.be.json
+        res.body.length.should.eql 1
+        res.body[0].type.should.eql 'hat'
