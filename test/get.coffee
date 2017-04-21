@@ -77,4 +77,4 @@ module.exports = (g)->
         res.should.have.status(200)
         res.should.be.json
         res.body.length.should.eql 1
-        res.body[0].name.should.eql 'saruman'
+        res.body[0].type.should.eql 'hat'

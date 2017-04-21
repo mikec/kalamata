@@ -102,7 +102,7 @@ module.exports = function(model, opts) {
   }
 
   function _delete_relation_middleware(req, res, next) {
-    req.foundrelated.invokeThen('destroy')
+    req.fetchedrelated.invokeThen('destroy')
     .then((deleted) => {
       res.status(200).send('deleted')
       next()
@@ -111,10 +111,10 @@ module.exports = function(model, opts) {
   }
 
   function _update_relation_middleware(req, res, next) {
-    req.foundrelated.map((i) => {
+    req.fetchedrelated.map((i) => {
       i.set(req.body)   // updated values
     })
-    req.foundrelated.invokeThen('save')
+    req.fetchedrelated.invokeThen('save')
     .then((saved) => {
       res.status(200).json(saved)
       next()
@@ -124,10 +124,11 @@ module.exports = function(model, opts) {
 
   function _fetch_related_middleware(req, res, next) {
     const relation = req.fetched.related(req.params.relation)
-    const q = relation.query({where: req.query.where || {}})
+    const mod = relation.model.collection()
+    const q = mod.query({where: req.query || {}})
     const fetchopts = (req.page) ? {page: req.page, pageSize: req.pagesize} : {}
-    const p = (req.page !== undefined) ? q.fetchPage(fetchopts) : q.fetch(fetchopts)
-    p.then((found) => {
+    const fetch = (req.page !== undefined) ? q.fetchPage : q.fetch
+    fetch.bind(q)(fetchopts).then((found) => {
       req.fetchedrelated = found
       next()
     })
