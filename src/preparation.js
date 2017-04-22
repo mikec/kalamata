@@ -1,13 +1,11 @@
 
 module.exports = function(opts) {
 
-  opts = opts || {}
-
   function _list_query(req, res, next) {
     try {
       req.listquery = req.query.where ? parseJSON(req.query.where) : {}
     } catch(err) {
-      return next(new Error('Could not parse JSON: ' + req.query.where))
+      return next(opts.createError('Could not parse JSON: ' + req.query.where))
     }
     next()
   }
@@ -16,7 +14,7 @@ module.exports = function(opts) {
     try {
       req.loadquery = req.query.load ? req.query.load.split(',') : []
     } catch(err) {
-      return next(new Error('could not parse query.load: ' + req.query.load))
+      return next(opts.createError('could not parse query.load: ' + req.query.load))
     }
     next()
   }
@@ -36,11 +34,11 @@ module.exports = function(opts) {
       opts.pageinfo_extractor(req) : _extract_paging(req)
     const page = parseInt(pinfo.page)
     if (pinfo.page && (isNaN(page) || page <= 0)) {
-      return next(new Error('wrong page'))
+      return next(opts.createError('wrong page'))
     }
     const pagesize = parseInt(pinfo.pagesize)
     if (pinfo.pagesize && (isNaN(pagesize) || pagesize <= 0)) {
-      return next(new Error('wrong pagesize'))
+      return next(opts.createError('wrong pagesize'))
     }
     if (pinfo.page) {
       req.page = page
@@ -66,10 +64,10 @@ module.exports = function(opts) {
       opts.sortinfo_extractor(req) : _extract_sorting(req)
     if (info) {
       if (! info.sortCol || info.sortCol.length === 0) {
-        return next(new Error('wrong sorting column'))
+        return next(opts.createError('wrong sorting column'))
       }
       if (! info.sortOrder.match(/^ASC$|^DESC$/)) {
-        return next(new Error('wrong sort order'))
+        return next(opts.createError('wrong sort order'))
       }
       req.sortCol = info.sortCol
       req.sortOrder = info.sortOrder

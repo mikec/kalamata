@@ -1,7 +1,9 @@
 
 module.exports = function(model, opts) {
 
-  opts = opts || {}
+  if (! opts.createError) {
+    throw new Error('mandatory function createError not provided in opts :/')
+  }
 
   const q = require('./preparation')(opts)
   const basic = require('./basic')(model)

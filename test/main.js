@@ -19,7 +19,11 @@ describe('app', (suite) => {
   app.use(bodyParser.json())
   g.db = db
 
-  const k = Kalamata(db.models.User)
+  const k = Kalamata(db.models.User, {
+    createError: (message, status = 400) => {
+      return new Error({status: status, message: message})
+    }
+  })
   k.init_app(app)  // create the REST routes
   app.use((err, req, res, next) => {
     if (err.message === 'EmptyResponse') {
