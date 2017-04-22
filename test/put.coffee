@@ -20,6 +20,9 @@ module.exports = (g)->
       .send({ type: 'supermagicwand' })
       .then (res) ->
         res.should.have.status(200)
+        res.should.be.json
+        res.body.length.should.eql 1
+        res.body[0].type.should.eql 'supermagicwand'
         # verify that gandalf has now supermagicwand
         return r.get("/#{g.gandalfID}?_load=tools")
       .then (res) ->

@@ -37,7 +37,7 @@ module.exports = function(model) {
     })
     req.fetchedrelated.invokeThen('save')
     .then((saved) => {
-      res.status(200).json(saved)
+      res.status(200).json(req.fetchedrelated)
       next()
     })
     .catch(next)
