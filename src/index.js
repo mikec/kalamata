@@ -46,6 +46,34 @@ module.exports = function(model, opts) {
     next()
   }
 
+  function _extract_sorting(req) { // default sortinginfo extractor
+    if (req.query.sortCol && req.query.sortOrder) {
+      const i = {
+        sortCol: req.query.sortCol,
+        sortOrder: req.query.sortOrder
+      }
+      delete req.query.sortCol
+      delete req.query.sortOrder
+      return i
+    }
+  }
+
+  function _sorting_query(req, res, next) {
+    const info = opts.sortinfo_extractor ?
+      opts.sortinfo_extractor(req) : _extract_sorting(req)
+    if (info) {
+      if (! info.sortCol || info.sortCol.length === 0) {
+        return next(new Error('wrong sorting column'))
+      }
+      if (! info.sortOrder.match(/^ASC$|^DESC$/)) {
+        return next(new Error('wrong sort order'))
+      }
+      req.sortCol = info.sortCol
+      req.sortOrder = info.sortOrder
+    }
+    next()
+  }
+
   function _get_related_middleware(req, res, next) {
     res.json(req.fetchedrelated)  // just JSON back req.fetchedrelated
     next()
@@ -55,6 +83,9 @@ module.exports = function(model, opts) {
     let mod = new model()
     if(req.listquery) {
       mod = mod.query({where: req.listquery})
+    }
+    if(req.sortCol) {
+      mod = mod.orderBy(req.sortCol, req.sortOrder)
     }
     const fetchopts = {}
     if (req.loadquery) {
@@ -124,8 +155,10 @@ module.exports = function(model, opts) {
 
   function _fetch_related_middleware(req, res, next) {
     const relation = req.fetched.related(req.params.relation)
-    const mod = relation.model.collection()
-    const q = mod.query({where: req.query || {}})
+    let q = relation.model.collection().query({where: req.query || {}})
+    if(req.sortCol) {
+      q = q.orderBy(req.sortCol, req.sortOrder)
+    }
     const fetchopts = (req.page) ? {page: req.page, pageSize: req.pagesize} : {}
     const fetch = (req.page !== undefined) ? q.fetchPage : q.fetch
     fetch.bind(q)(fetchopts).then((found) => {
@@ -169,13 +202,13 @@ module.exports = function(model, opts) {
   }
 
   function _init_app(app) {
-    app.get('/', _list_query, _paging_query, _load_query, _list_middleware)
+    app.get('/', _list_query, _paging_query, _sorting_query, _load_query, _list_middleware)
     app.get('/:id', _load_query, _fetch_middleware, _detail_middleware)
     app.post('/', _create_middleware)
     app.put('/:id', _fetch_middleware, _update_middleware)
     app.delete('/:id', _fetch_middleware, _delete_middleware)
     // relations
-    app.get('/:id/:relation', _fetch_middleware, _paging_query, _fetch_related_middleware, _get_related_middleware)
+    app.get('/:id/:relation', _fetch_middleware, _paging_query, _sorting_query, _fetch_related_middleware, _get_related_middleware)
     app.post('/:id/:relation', _fetch_middleware, _create_relation_middleware)
     app.put('/:id/:relation', _fetch_middleware, _fetch_related_middleware, _update_relation_middleware)
     app.delete('/:id/:relation', _fetch_middleware, _fetch_related_middleware, _delete_relation_middleware)

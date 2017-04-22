@@ -55,3 +55,19 @@ module.exports = (g)->
         res.should.be.json
         res.body.length.should.eql 1
         res.body[0].type.should.eql 'hat'
+
+    it 'must list users sorted according name', () ->
+      r.get("/?sortCol=name&sortOrder=DESC").then (res) ->
+        res.should.have.status(200)
+        res.should.be.json
+        res.body.length.should.eql 2
+        res.body[0].name.should.eql 'saruman'
+        res.body[1].name.should.eql 'gandalfek'
+
+    it 'must list gandalf thigs', () ->
+      r.get("/#{g.gandalfID}/tools/?sortCol=type&sortOrder=ASC").then (res) ->
+        res.should.have.status(200)
+        res.should.be.json
+        res.body.length.should.eql 2
+        res.body[0].type.should.eql 'hat'
+        res.body[1].type.should.eql 'supermagicwand'
