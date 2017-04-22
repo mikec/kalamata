@@ -75,6 +75,9 @@ module.exports = function(model, opts) {
   }
 
   function _get_related_middleware(req, res, next) {
+    if (req.fetchedrelated.pagination) {
+      res.set('x-total-count', req.fetchedrelated.pagination.rowCount)
+    }
     res.json(req.fetchedrelated)  // just JSON back req.fetchedrelated
     next()
   }
@@ -97,6 +100,9 @@ module.exports = function(model, opts) {
     }
     const fetchMethod = req.page === undefined ? mod.fetchAll : mod.fetchPage
     fetchMethod.bind(mod)(fetchopts).then(function(collection) {
+      if (collection.pagination) {
+        res.set('x-total-count', collection.pagination.rowCount)
+      }
       res.json(collection)
       next()
     })

@@ -48,6 +48,7 @@ module.exports = (g)->
         res.should.be.json
         res.body.length.should.eql 1
         res.body[0].name.should.eql 'saruman'
+        res.headers['x-total-count'].should.eql '2'
 
     it 'must list 2nd page of gandalf thigs', () ->
       r.get("/#{g.gandalfID}/tools/?page=2&pagesize=1").then (res) ->
@@ -55,6 +56,7 @@ module.exports = (g)->
         res.should.be.json
         res.body.length.should.eql 1
         res.body[0].type.should.eql 'hat'
+        res.headers['x-total-count'].should.eql '2'
 
     it 'must list users sorted according name', () ->
       r.get("/?sortCol=name&sortOrder=DESC").then (res) ->
