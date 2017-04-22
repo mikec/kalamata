@@ -11,7 +11,7 @@ module.exports = function(model, opts) {
 
   function _init_app(app) {
     app.get('/',
-      q.list_query, q.paging_query, q.sorting_query, q.load_query, q.attrs_query,
+      q.paging_query, q.sorting_query, q.load_query, q.attrs_query,
       basic.list_middleware
     )
     app.get('/:id', q.load_query, basic.fetch_middleware, basic.detail_middleware)

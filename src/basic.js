@@ -3,8 +3,8 @@ module.exports = function(model) {
 
   function _list_middleware(req, res, next) {
     let mod = new model()
-    if(req.listquery) {
-      mod = mod.query({where: req.listquery})
+    if(req.query) {
+      mod = mod.query({where: req.query})
     }
     if(req.sortCol) {
       mod = mod.orderBy(req.sortCol, req.sortOrder)

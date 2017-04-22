@@ -21,7 +21,7 @@ module.exports = (g)->
       .then (res) ->
         res.should.have.status(200)
         # verify that gandalf has now supermagicwand
-        return r.get("/#{g.gandalfID}?load=tools")
+        return r.get("/#{g.gandalfID}?_load=tools")
       .then (res) ->
         res.should.have.status(200)
         res.should.be.json

@@ -21,13 +21,13 @@ module.exports = (g)->
         res.body.name.should.eql 'gandalfek'
 
     it 'must return gandalf with all tools (magicwand)', () ->
-      r.get("/#{g.gandalfID}?load=tools").then (res) ->
+      r.get("/#{g.gandalfID}?_load=tools").then (res) ->
         res.should.have.status(200)
         res.should.be.json
         res.body.tools.length.should.eql 2
 
     it 'must return all users with all tools', () ->
-      r.get("/?load=tools").then (res) ->
+      r.get("/?_load=tools").then (res) ->
         res.should.have.status(200)
         res.should.be.json
         res.body.length.should.eql 2
@@ -35,7 +35,7 @@ module.exports = (g)->
         res.body[0].tools[0].type.should.eql 'supermagicwand'
 
     it 'must list 2nd page of users', () ->
-      r.get('/?page=2&pagesize=1').then (res) ->
+      r.get('/?_page=2&_pagesize=1').then (res) ->
         res.should.have.status(200)
         res.should.be.json
         res.body.length.should.eql 1
@@ -43,7 +43,7 @@ module.exports = (g)->
         res.headers['x-total-count'].should.eql '2'
 
     it 'must list 2nd page of users but only names', () ->
-      r.get('/?page=2&pagesize=1&attrs=name').then (res) ->
+      r.get('/?_page=2&_pagesize=1&_attrs=name').then (res) ->
         res.should.have.status(200)
         res.should.be.json
         res.body.length.should.eql 1
@@ -51,7 +51,7 @@ module.exports = (g)->
         res.body[0].name.should.eql 'saruman'
 
     it 'must list 2nd page of gandalf thigs', () ->
-      r.get("/#{g.gandalfID}/tools/?page=2&pagesize=1").then (res) ->
+      r.get("/#{g.gandalfID}/tools/?_page=2&_pagesize=1").then (res) ->
         res.should.have.status(200)
         res.should.be.json
         res.body.length.should.eql 1
@@ -59,7 +59,7 @@ module.exports = (g)->
         res.headers['x-total-count'].should.eql '2'
 
     it 'must list users sorted according name', () ->
-      r.get("/?sortCol=name&sortOrder=DESC").then (res) ->
+      r.get("/?_sortCol=name&_sortOrder=DESC").then (res) ->
         res.should.have.status(200)
         res.should.be.json
         res.body.length.should.eql 2
@@ -67,7 +67,7 @@ module.exports = (g)->
         res.body[1].name.should.eql 'gandalfek'
 
     it 'must list gandalf thigs', () ->
-      r.get("/#{g.gandalfID}/tools/?sortCol=type&sortOrder=ASC").then (res) ->
+      r.get("/#{g.gandalfID}/tools/?_sortCol=type&_sortOrder=ASC").then (res) ->
         res.should.have.status(200)
         res.should.be.json
         res.body.length.should.eql 2
@@ -75,7 +75,7 @@ module.exports = (g)->
         res.body[1].type.should.eql 'supermagicwand'
 
     it 'must list gandalf thig types and ids ONLY', () ->
-      r.get("/#{g.gandalfID}/tools/?sortCol=type&sortOrder=ASC&attrs=type,id")
+      r.get("/#{g.gandalfID}/tools/?_sortCol=type&_sortOrder=ASC&_attrs=type,id")
       .then (res) ->
         res.should.have.status(200)
         res.should.be.json

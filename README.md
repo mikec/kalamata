@@ -79,7 +79,7 @@ app.put('/:id', user_middlewarez.fetch_middleware, _set_updated_on, user_middlew
 ```js
 // middleware that adds another contraint to fetching query
 function _omit_deleted(req, res, user) {
-  req.listquery.deleted = false
+  req.query.deleted = false
   next()  // DON'T forget call next
 }
 app.get('/', user_middlewarez.list_query, _omit_deleted. user_middlewarez.list_middleware)

@@ -14,7 +14,7 @@ module.exports = (g)->
       .then (res) ->
         res.should.have.status(200)
         # verify gandalf is toolless
-        return r.get("/#{g.gandalfID}?load=tools")
+        return r.get("/#{g.gandalfID}?_load=tools")
       .then (res) ->
         res.should.have.status(200)
         res.should.be.json
