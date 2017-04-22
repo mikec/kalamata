@@ -74,6 +74,14 @@ module.exports = function(model, opts) {
     next()
   }
 
+  function _attrs_query(req, res, next) {
+    if (req.query.attrs) {
+      req.columns4fetch = req.query.attrs.split(',')
+      delete req.query.attrs
+    }
+    next()
+  }
+
   function _get_related_middleware(req, res, next) {
     if (req.fetchedrelated.pagination) {
       res.set('x-total-count', req.fetchedrelated.pagination.rowCount)
@@ -97,6 +105,9 @@ module.exports = function(model, opts) {
     if (req.page) {
       fetchopts.page = req.page
       fetchopts.pageSize = req.pagesize
+    }
+    if (req.columns4fetch) {
+      fetchopts.columns = req.columns4fetch
     }
     const fetchMethod = req.page === undefined ? mod.fetchAll : mod.fetchPage
     fetchMethod.bind(mod)(fetchopts).then(function(collection) {
@@ -166,6 +177,9 @@ module.exports = function(model, opts) {
       q = q.orderBy(req.sortCol, req.sortOrder)
     }
     const fetchopts = (req.page) ? {page: req.page, pageSize: req.pagesize} : {}
+    if (req.columns4fetch) {
+      fetchopts.columns = req.columns4fetch
+    }
     const fetch = (req.page !== undefined) ? q.fetchPage : q.fetch
     fetch.bind(q)(fetchopts).then((found) => {
       req.fetchedrelated = found
@@ -208,13 +222,13 @@ module.exports = function(model, opts) {
   }
 
   function _init_app(app) {
-    app.get('/', _list_query, _paging_query, _sorting_query, _load_query, _list_middleware)
+    app.get('/', _list_query, _paging_query, _sorting_query, _load_query, _attrs_query, _list_middleware)
     app.get('/:id', _load_query, _fetch_middleware, _detail_middleware)
     app.post('/', _create_middleware)
     app.put('/:id', _fetch_middleware, _update_middleware)
     app.delete('/:id', _fetch_middleware, _delete_middleware)
     // relations
-    app.get('/:id/:relation', _fetch_middleware, _paging_query, _sorting_query, _fetch_related_middleware, _get_related_middleware)
+    app.get('/:id/:relation', _fetch_middleware, _paging_query, _sorting_query, _attrs_query, _fetch_related_middleware, _get_related_middleware)
     app.post('/:id/:relation', _fetch_middleware, _create_relation_middleware)
     app.put('/:id/:relation', _fetch_middleware, _fetch_related_middleware, _update_relation_middleware)
     app.delete('/:id/:relation', _fetch_middleware, _fetch_related_middleware, _delete_relation_middleware)
