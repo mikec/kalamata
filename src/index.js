@@ -22,10 +22,13 @@ module.exports = function(model, opts) {
   }
 
   function _extract_paging(req) { // default pageinfo extractor
-    return {
+    const i = {
       page: req.query.page,
       pagesize: req.query.pagesize
     }
+    delete req.query.page
+    delete req.query.pagesize
+    return i
   }
 
   function _paging_query(req, res, next) {
@@ -172,7 +175,9 @@ module.exports = function(model, opts) {
 
   function _fetch_related_middleware(req, res, next) {
     const relation = req.fetched.related(req.params.relation)
-    let q = relation.model.collection().query({where: req.query || {}})
+    const where = req.query || {}
+    where[relation.relatedData.foreignKey] = relation.relatedData.parentFk
+    let q = relation.model.collection().query({where: where})
     if(req.sortCol) {
       q = q.orderBy(req.sortCol, req.sortOrder)
     }

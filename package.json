@@ -20,7 +20,7 @@
   "peerDependencies": {
     "express": "^4.10.0",
     "body-parser": "^1.9.0",
-    "bookshelf": "^0.10.3"
+    "bookshelf": "vencax/bookshelf"
   },
   "devDependencies": {
     "chai": "^3.5.0",

@@ -30,20 +30,12 @@ module.exports = (g)->
       r.get("/?load=tools").then (res) ->
         res.should.have.status(200)
         res.should.be.json
-        res.body.length.should.eql 1
+        res.body.length.should.eql 2
         res.body[0].tools.length.should.eql 2
         res.body[0].tools[0].type.should.eql 'supermagicwand'
 
     it 'must list 2nd page of users', () ->
-      # add another user
-      r.post('/').send({ name: 'saruman' })
-      .then (res) ->
-        res.should.have.status(201)
-        res.should.be.json
-        g.sarumanID = res.body.id
-        # list 2nd page
-        r.get('/?page=2&pagesize=1')
-      .then (res) ->
+      r.get('/?page=2&pagesize=1').then (res) ->
         res.should.have.status(200)
         res.should.be.json
         res.body.length.should.eql 1
@@ -51,8 +43,7 @@ module.exports = (g)->
         res.headers['x-total-count'].should.eql '2'
 
     it 'must list 2nd page of users but only names', () ->
-      r.get('/?page=2&pagesize=1&attrs=name')
-      .then (res) ->
+      r.get('/?page=2&pagesize=1&attrs=name').then (res) ->
         res.should.have.status(200)
         res.should.be.json
         res.body.length.should.eql 1

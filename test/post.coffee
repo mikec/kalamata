@@ -33,3 +33,15 @@ module.exports = (g)->
         res.should.have.status(201)
         res.should.be.json
         res.body.type.should.eql 'hat'
+
+    it 'add another user, saruman', () ->
+      r.post('/').send({ name: 'saruman' })
+      .then (res) ->
+        res.should.have.status(201)
+        res.should.be.json
+        g.sarumanID = res.body.id
+        return r.post("/#{g.sarumanID}/tools").send({ type: 'fury' })
+      .then (res) ->
+        res.should.have.status(201)
+        res.should.be.json
+        res.body.type.should.eql 'fury'
