@@ -78,10 +78,10 @@ module.exports = function(opts) {
   }
 
   return {
-    attrs_query: _attrs_query,
-    load_query: _load_query,
-    paging_query: _paging_query,
-    sorting_query: _sorting_query
+    attrs_q: _attrs_query,
+    load_q: _load_query,
+    paging_q: _paging_query,
+    sorting_q: _sorting_query
   }
 
 }

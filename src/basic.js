@@ -81,12 +81,12 @@ module.exports = function(model) {
   }
 
   return {
-    list_middleware: _list_middleware,
-    detail_middleware: _detail_middleware,
-    create_middleware: _create_middleware,
-    fetch_middleware: _fetch_middleware,
-    update_middleware: _update_middleware,
-    delete_middleware: _delete_middleware
+    fetch: _fetch_middleware,
+    list: _list_middleware,
+    detail: _detail_middleware,
+    create: _create_middleware,
+    update: _update_middleware,
+    delete: _delete_middleware
   }
 
 }

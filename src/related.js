@@ -64,11 +64,11 @@ module.exports = function(model) {
   }
 
   return {
-    get_related_middleware: _get_related_middleware,
-    create_relation_middleware: _create_relation_middleware,
-    delete_relation_middleware: _delete_relation_middleware,
-    fetch_related_middleware: _fetch_related_middleware,
-    update_relation_middleware: _update_relation_middleware
+    fetch_rel: _fetch_related_middleware,
+    get_rel: _get_related_middleware,
+    create_rel: _create_relation_middleware,
+    update_rel: _update_relation_middleware,
+    delete_rel: _delete_relation_middleware
   }
 
 }

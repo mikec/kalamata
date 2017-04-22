@@ -10,28 +10,19 @@ module.exports = function(model, opts) {
   const related = require('./related')(model)
 
   function _init_app(app) {
-    app.get('/',
-      q.paging_query, q.sorting_query, q.load_query, q.attrs_query,
-      basic.list_middleware
-    )
-    app.get('/:id', q.load_query, basic.fetch_middleware, basic.detail_middleware)
-    app.post('/', basic.create_middleware)
-    app.put('/:id', basic.fetch_middleware, basic.update_middleware)
-    app.delete('/:id', basic.fetch_middleware, basic.delete_middleware)
+    app.get('/', q.paging_q, q.sorting_q, q.load_q, q.attrs_q, basic.list)
+    app.get('/:id', q.load_q, basic.fetch, basic.detail)
+    app.post('/', basic.create)
+    app.put('/:id', basic.fetch, basic.update)
+    app.delete('/:id', basic.fetch, basic.delete)
     // relations
     app.get('/:id/:relation',
-      basic.fetch_middleware, q.paging_query, q.sorting_query, q.attrs_query,
-      related.fetch_related_middleware, related.get_related_middleware
+      basic.fetch, q.paging_q, q.sorting_q, q.attrs_q,
+      related.fetch_rel, related.get_rel
     )
-    app.post('/:id/:relation', basic.fetch_middleware,
-      related.create_relation_middleware
-    )
-    app.put('/:id/:relation', basic.fetch_middleware,
-      related.fetch_related_middleware, related.update_relation_middleware
-    )
-    app.delete('/:id/:relation', basic.fetch_middleware,
-      related.fetch_related_middleware, related.delete_relation_middleware
-    )
+    app.post('/:id/:relation', basic.fetch, related.create_rel)
+    app.put('/:id/:relation', basic.fetch, related.fetch_rel, related.update_rel)
+    app.delete('/:id/:relation', basic.fetch, related.fetch_rel, related.delete_rel)
   }
 
   return Object.assign({init_app: _init_app}, q, basic, related)

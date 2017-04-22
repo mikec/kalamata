@@ -53,9 +53,9 @@ describe('app', (suite) => {
 
   it('should exist', (done) => {
     should.exist(g.app)
-    should.exist(k.sorting_query)
-    should.exist(k.list_middleware)
-    should.exist(k.create_relation_middleware)
+    should.exist(k.sorting_q)
+    should.exist(k.list)
+    should.exist(k.create_rel)
     done()
   })
 
