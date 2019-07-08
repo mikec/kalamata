@@ -103,16 +103,16 @@ kalamata.expose = function(model, _opts_) {
 
                 // If the page number is greater than the number of pages, we return an empty array
                 if (page_number > total_pages) {
-                    sendResponse(res, []); // Can I do this directly?
+                    sendResponse(res, []);
                     return
                 // If it is the last page, we return only the last elements of the request
                 } else if (page_number === total_pages) {
                     const left_items = total_items - (page_number-1) * page_size_number;
 
-                    mod.orderBy('id', 'DESC').query(qb => qb.limit(left_items).offset(page_number-1)); // Remove orderBy?
+                    mod.orderBy('id', 'DESC').query(qb => qb.limit(left_items).offset(page_number-1));
                 // otherwise, return the elements of the page requested
                 } else {
-                    mod.orderBy('id', 'DESC').query(qb => qb.limit(page_size_number).offset(page_number-1)); // Remove orderBy?
+                    mod.orderBy('id', 'DESC').query(qb => qb.limit(page_size_number).offset(page_number-1));
                 }
 
                 // Add headers in res with links to previous and next pages
