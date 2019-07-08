@@ -96,7 +96,10 @@ kalamata.expose = function(model, _opts_) {
                 const page_number = parseInt(page, 10);
                 const page_size_number = parseInt(page_size, 10);
 
-                const { total_items, total_pages } = mod.count('id').then(total_items => ({total_items, total_pages: Math.ceil(total_items/page_size_number)}))
+                const { total_items, total_pages } = mod.count('id').then(total_items => ({
+                    total_items,
+                    total_pages: Math.ceil(total_items/page_size_number)
+                }))
 
                 // If the page number is greater than the number of pages, we return an empty array
                 if (page_number > total_pages) {
@@ -104,7 +107,7 @@ kalamata.expose = function(model, _opts_) {
                     return
                 // If it is the last page, we return only the last elements of the request
                 } else if (page_number === total_pages) {
-                    const left_items = total_items - (page_number-1)*page_size_number;
+                    const left_items = total_items - (page_number-1) * page_size_number;
 
                     mod.orderBy('id', 'DESC').query(qb => qb.limit(left_items).offset(page_number-1)); // Remove orderBy?
                 // otherwise, return the elements of the page requested
@@ -115,7 +118,10 @@ kalamata.expose = function(model, _opts_) {
                 // Add headers in res with links to previous and next pages
                 // Add also the number of pages and the number of items per page
                 if (!(page_number === 0)) {
-                    res.header('x-prev', `${req.route.path}?page=${page_number - 1}&page_size=${page_size_number}&load=${req.query.load ? req.query.load: ''}`);
+                    res.header(
+                        'x-prev',
+                        `${req.route.path}?page=${page_number - 1}&page_size=${page_size_number}&load=${req.query.load ? req.query.load: ''}`
+                        );
                 } 
                 if (!(page_number === total_pages)) {
                     res.header('x-next', `${req.route.path}?page=${page_number + 1}&page_size=${page_size_number}&load=${req.query.load ? req.query.load: ''}`);
