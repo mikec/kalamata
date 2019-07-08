@@ -109,10 +109,10 @@ kalamata.expose = function(model, _opts_) {
                         } else if (page_number === total_pages) {
                             const remaining_items = total_items - (page_number - 1) * page_size_number;
         
-                            mod.orderBy('id', 'DESC').query(qb => qb.limit(remaining_items).offset(page_number - 1));
+                            mod.orderBy('id', 'DESC').query(qb => qb.limit(remaining_items).offset((page_number - 1) * page_size_number));
                         // otherwise, return the elements of the page requested
                         } else {
-                            mod.orderBy('id', 'DESC').query(qb => qb.limit(page_size_number).offset(page_number - 1));
+                            mod.orderBy('id', 'DESC').query(qb => qb.limit(page_size_number).offset((page_number - 1) * page_size_number));
                         }
         
                         // Add headers in res with links to previous and next pages
