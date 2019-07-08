@@ -89,54 +89,60 @@ kalamata.expose = function(model, _opts_) {
             var beforeResult = runHooks(beforeHooks.getCollection, [req, res, mod]);
             if(res.headersSent) return;
 
-            // If we send page or page_size, we want to limit the query
-            if(req.query.page || req.query.page_size) {
-                // By default, we return the first page with 100 items
-                const { page = 1, page_size = 100 } = req.query;
-                const page_number = parseInt(page, 10);
-                const page_size_number = parseInt(page_size, 10);
+            var pagePromise = new Promise((resolve, reject) => {
+                // If we send page or page_size, we want to limit the query
+                if(req.query.page || req.query.page_size) {
+                    // By default, we return the first page with 100 items
+                    const { page = 1, page_size = 100 } = req.query;
+                    const page_number = parseInt(page, 10);
+                    const page_size_number = parseInt(page_size, 10);
 
-                const { total_items, total_pages } = mod.count('id').then(total_items => ({
-                    total_items,
-                    total_pages: Math.ceil(total_items/page_size_number)
-                }))
-
-                // If the page number is greater than the number of pages, we return an empty array
-                if (page_number > total_pages) {
-                    sendResponse(res, []);
-                    return
-                // If it is the last page, we return only the last elements of the request
-                } else if (page_number === total_pages) {
-                    const left_items = total_items - (page_number-1) * page_size_number;
-
-                    mod.orderBy('id', 'DESC').query(qb => qb.limit(left_items).offset(page_number-1));
-                // otherwise, return the elements of the page requested
+                    new Promise((resolve, reject) => resolve(mod.count('id'))).then(total_items => ({
+                        total_items,
+                        total_pages: Math.ceil(total_items/page_size_number)
+                    })).then(({total_items, total_pages}) => {
+                        // If the page number is greater than the number of pages, we return an empty array
+                        if (page_number > total_pages) {
+                            sendResponse(res, []);
+                            return
+                        // If it is the last page, we return only the last elements of the request
+                        } else if (page_number === total_pages) {
+                            const remaining_items = total_items - (page_number - 1) * page_size_number;
+        
+                            mod.orderBy('id', 'DESC').query(qb => qb.limit(remaining_items).offset(page_number - 1));
+                        // otherwise, return the elements of the page requested
+                        } else {
+                            mod.orderBy('id', 'DESC').query(qb => qb.limit(page_size_number).offset(page_number - 1));
+                        }
+        
+                        // Add headers in res with links to previous and next pages
+                        // Add also the number of pages and the number of items per page
+                        if (!(page_number === 0)) {
+                            res.header(
+                                'x-prev',
+                                `${req.route.path}?page=${page_number - 1}&page_size=${page_size_number}&load=${req.query.load ? req.query.load: ''}`
+                                );
+                        } 
+                        if (!(page_number === total_pages)) {
+                            res.header('x-next', `${req.route.path}?page=${page_number + 1}&page_size=${page_size_number}&load=${req.query.load ? req.query.load: ''}`);
+                        }
+                        res.header('x-total-pages', total_pages);
+                        res.header('x-total-items', total_items);
+                    }).then(() => resolve()).catch(error => console.warn(error))
                 } else {
-                    mod.orderBy('id', 'DESC').query(qb => qb.limit(page_size_number).offset(page_number-1));
+                    resolve();
                 }
+            })
 
-                // Add headers in res with links to previous and next pages
-                // Add also the number of pages and the number of items per page
-                if (!(page_number === 0)) {
-                    res.header(
-                        'x-prev',
-                        `${req.route.path}?page=${page_number - 1}&page_size=${page_size_number}&load=${req.query.load ? req.query.load: ''}`
-                        );
-                } 
-                if (!(page_number === total_pages)) {
-                    res.header('x-next', `${req.route.path}?page=${page_number + 1}&page_size=${page_size_number}&load=${req.query.load ? req.query.load: ''}`);
-                }
-                res.header('x-total-pages', total_pages);
-                res.header('x-total-items', total_items);
-            }
-
-            var promise = beforeResult.promise || mod.fetchAll(getFetchParams(req, res));
-            promise.then(function(collection) {
-                var afterResult = runHooks(afterHooks.getCollection, [req, res, collection]);
-                return afterResult.promise || collection;
-            }).then(function(collection) {
-                sendResponse(res, collection.toJSON());
-            }).catch(next);
+            pagePromise.then(() => {
+                var promise = beforeResult.promise || mod.fetchAll(getFetchParams(req, res));
+                promise.then(function(collection) {
+                    var afterResult = runHooks(afterHooks.getCollection, [req, res, collection]);
+                    return afterResult.promise || collection;
+                }).then(function(collection) {
+                    sendResponse(res, collection.toJSON());
+                }).catch(next);
+            })
         });
 
         app.get(options.apiRoot + opts.endpointName + '/:identifier',
