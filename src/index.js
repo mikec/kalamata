@@ -72,7 +72,7 @@ kalamata.expose = function(model, _opts_) {
 
     function configureEndpoints() {
 
-        app.get(options.apiRoot + opts.endpointName, async function(req, res, next) {
+        app.get(options.apiRoot + opts.endpointName, function(req, res, next) {
             var mod;
             if(req.query.where) {
                 var w;
@@ -96,7 +96,7 @@ kalamata.expose = function(model, _opts_) {
                 const page_number = parseInt(page, 10);
                 const page_size_number = parseInt(page_size, 10);
 
-                const { total_items, total_pages } = await mod.count('id').then(total_items => ({total_items, total_pages: Math.ceil(total_items/page_size_number)}))
+                const { total_items, total_pages } = mod.count('id').then(total_items => ({total_items, total_pages: Math.ceil(total_items/page_size_number)}))
 
                 // If the page number is greater than the number of pages, we return an empty array
                 if (page_number > total_pages) {
