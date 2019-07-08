@@ -87,21 +87,26 @@ kalamata.expose = function(model, _opts_) {
             }
 
             return Promise.resolve().then(() => {
-                if(req.query.page || req.query.page_size) {
+                 // If we send page or page_size in the query, we want to limit the query
+                 if(req.query.page || req.query.page_size) {
                     // By default, we return the first page with 100 items
                     const { page = 1, page_size = 100 } = req.query;
                     const page_number = parseInt(page, 10);
                     const page_size_number = parseInt(page_size, 10);
 
+                    // Get the number of pages and the number of items
                     return mod.count('id').then(total_items => ({
                         total_items,
                         total_pages: Math.ceil(total_items/page_size_number)
                     })).then(({total_items, total_pages}) => {
                         // If the page number is greater than the number of pages, we return an empty array
+                        // Limit and offset are creating a loop: we will have the first page if we request total_pages + 1
+                        // We want to avoid this loop to happen
                         if (page_number > total_pages) {
                             sendResponse(res, []);
-                            return
+                            return;
                         // If it is the last page, we return only the last elements of the request
+                        // If we don't do this, we will have some of the first elements in the last page
                         } else if (page_number === total_pages) {
                             const remaining_items = total_items - (page_number - 1) * page_size_number;
         
@@ -125,7 +130,8 @@ kalamata.expose = function(model, _opts_) {
                         res.header('x-total-pages', total_pages);
                         res.header('x-total-items', total_items);
                     })
-                }
+                 }
+
             }).then(() => {
                 if(res.headersSent) return;
 
@@ -136,15 +142,16 @@ kalamata.expose = function(model, _opts_) {
             }).then(collection => {
                 if(res.headersSent) return;
 
-            pagePromise.then(() => {
-                var promise = beforeResult.promise || mod.fetchAll(getFetchParams(req, res));
-                promise.then(function(collection) {
-                    var afterResult = runHooks(afterHooks.getCollection, [req, res, collection]);
-                    return afterResult.promise || collection;
+                // after hook
+                var afterResult = runHooks(afterHooks.getCollection, [req, res, collection]);
+
+                return afterResult.promise || collection;
             }).then(collection => {
                 if(res.headersSent) return;
-                    sendResponse(res, collection.toJSON());
-                }).catch(next);
+
+                // send final response
+                sendResponse(res, collection.toJSON());
+            }).catch(next);
         });
 
         app.get(options.apiRoot + opts.endpointName + '/:identifier',
