@@ -22,6 +22,9 @@
     "bookshelf": "^0.10"
   },
   "devDependencies": {
+    "eslint": "^5.16.0",
+    "eslint-config-airbnb-base": "^13.2.0",
+    "eslint-plugin-import": "^2.18.0",
     "grunt": "0.4.5",
     "grunt-contrib-watch": "0.6.1",
     "grunt-jasmine-node": "git://github.com/fiznool/grunt-jasmine-node.git#c773421b608ce944454cb540a6e66575d2df09c6",
