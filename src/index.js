@@ -86,18 +86,14 @@ kalamata.expose = function(model, _opts_) {
                 mod = new model();
             }
 
-            var beforeResult = runHooks(beforeHooks.getCollection, [req, res, mod]);
-            if(res.headersSent) return;
-
-            var pagePromise = new Promise((resolve, reject) => {
-                // If we send page or page_size, we want to limit the query
+            return Promise.resolve().then(() => {
                 if(req.query.page || req.query.page_size) {
                     // By default, we return the first page with 100 items
                     const { page = 1, page_size = 100 } = req.query;
                     const page_number = parseInt(page, 10);
                     const page_size_number = parseInt(page_size, 10);
 
-                    new Promise((resolve, reject) => resolve(mod.count('id'))).then(total_items => ({
+                    return mod.count('id').then(total_items => ({
                         total_items,
                         total_pages: Math.ceil(total_items/page_size_number)
                     })).then(({total_items, total_pages}) => {
@@ -128,21 +124,27 @@ kalamata.expose = function(model, _opts_) {
                         }
                         res.header('x-total-pages', total_pages);
                         res.header('x-total-items', total_items);
-                    }).then(() => resolve()).catch(error => console.warn(error))
-                } else {
-                    resolve();
+                    })
                 }
-            })
+            }).then(() => {
+                if(res.headersSent) return;
+
+                // before hook
+                var beforeResult = runHooks(beforeHooks.getCollection, [req, res, mod]);
+
+                return beforeResult.promise || mod.fetchAll(getFetchParams(req, res));
+            }).then(collection => {
+                if(res.headersSent) return;
 
             pagePromise.then(() => {
                 var promise = beforeResult.promise || mod.fetchAll(getFetchParams(req, res));
                 promise.then(function(collection) {
                     var afterResult = runHooks(afterHooks.getCollection, [req, res, collection]);
                     return afterResult.promise || collection;
-                }).then(function(collection) {
+            }).then(collection => {
+                if(res.headersSent) return;
                     sendResponse(res, collection.toJSON());
                 }).catch(next);
-            })
         });
 
         app.get(options.apiRoot + opts.endpointName + '/:identifier',
