@@ -71,17 +71,23 @@ kalamata.expose = function (model, _opts_) {
 
 	function configureEndpoints() {
 		app.get(options.apiRoot + opts.endpointName, (req, res, next) => {
-			let mod;
+			// initialize our DB request.
+			let mod = new model();
+
 			if (req.query.where) {
-				let w;
+				let where;
+
+				// the query string must be formatted as json.
 				try {
-					w = parseJSON(req.query.where);
+					where = parseJSON(req.query.where);
 				} catch (err) {
 					throw new Error('Could not parse JSON: ' + req.query.where);
 				}
-				mod = new model().where(w);
-			} else {
-				mod = new model();
+
+				// if the "where" was successfully parsed, we can chain it on to the request.
+				if (where) {
+					mod = mod.where(where);
+				}
 			}
 
 			return Promise.resolve().then(() => {
