@@ -93,7 +93,7 @@ kalamata.expose = function (model, _opts_) {
 					const page_size_number = parseInt(page_size, 10);
 
 					// Get the number of pages and the number of items
-					return mod.count('id').then(total_items => ({
+					return mod.clone().count('id').then(total_items => ({
 						total_items,
 						total_pages: Math.ceil(total_items / page_size_number),
 					})).then(({ total_items, total_pages }) => {
