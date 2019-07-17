@@ -1,5 +1,6 @@
 const bodyParser = require('body-parser');
 const Promise = require('bluebird');
+const Qs = require('qs');
 
 let app; let
 	options;
@@ -71,17 +72,23 @@ kalamata.expose = function (model, _opts_) {
 
 	function configureEndpoints() {
 		app.get(options.apiRoot + opts.endpointName, (req, res, next) => {
-			let mod;
+			// initialize our DB request.
+			let mod = new model();
+
 			if (req.query.where) {
-				let w;
+				let where;
+
+				// the query string must be formatted as json.
 				try {
-					w = parseJSON(req.query.where);
+					where = parseJSON(req.query.where);
 				} catch (err) {
 					throw new Error('Could not parse JSON: ' + req.query.where);
 				}
-				mod = new model().where(w);
-			} else {
-				mod = new model();
+
+				// if the "where" was successfully parsed, we can chain it on to the request.
+				if (where) {
+					mod = mod.where(where);
+				}
 			}
 
 			return Promise.resolve().then(() => {
@@ -93,7 +100,7 @@ kalamata.expose = function (model, _opts_) {
 					const page_size_number = parseInt(page_size, 10);
 
 					// Get the number of pages and the number of items
-					return mod.count('id').then(total_items => ({
+					return mod.clone().count('id').then(total_items => ({
 						total_items,
 						total_pages: Math.ceil(total_items / page_size_number),
 					})).then(({ total_items, total_pages }) => {
@@ -108,22 +115,37 @@ kalamata.expose = function (model, _opts_) {
 						} if (page_number === total_pages) {
 							const remaining_items = total_items - (page_number - 1) * page_size_number;
 
-							mod.orderBy('id', 'DESC').query(qb => qb.limit(remaining_items).offset((page_number - 1) * page_size_number));
+							mod = mod.orderBy('id', 'DESC').query(qb => qb.limit(remaining_items).offset((page_number - 1) * page_size_number));
 							// otherwise, return the elements of the page requested
 						} else {
-							mod.orderBy('id', 'DESC').query(qb => qb.limit(page_size_number).offset((page_number - 1) * page_size_number));
+							mod = mod.orderBy('id', 'DESC').query(qb => qb.limit(page_size_number).offset((page_number - 1) * page_size_number));
 						}
 
 						// Add headers in res with links to previous and next pages
 						// Add also the number of pages and the number of items per page
 						if (!(page_number === 0)) {
+							const prev_query = Object.assign({}, req.query);
+							// decrement page number.
+							prev_query.page_number = page_number - 1;
+							// set page size explicitly just to be safe.
+							prev_query.page_size_number = page_size_number;
+
 							res.header(
 								'x-prev',
-								`${req.route.path}?page=${page_number - 1}&page_size=${page_size_number}&load=${req.query.load ? req.query.load : ''}`,
+								`${req.route.path}?${Qs.stringify(prev_query)}`,
 							);
 						}
 						if (!(page_number === total_pages)) {
-							res.header('x-next', `${req.route.path}?page=${page_number + 1}&page_size=${page_size_number}&load=${req.query.load ? req.query.load : ''}`);
+							const next_query = Object.assign({}, req.query);
+							// increment page number.
+							next_query.page_number = page_number + 1;
+							// set page size explicitly just to be safe.
+							next_query.page_size_number = page_size_number;
+
+							res.header(
+								'x-next',
+								`${req.route.path}?${Qs.stringify(next_query)}`,
+							);
 						}
 						res.header('x-total-pages', total_pages);
 						res.header('x-total-items', total_items);
