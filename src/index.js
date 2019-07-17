@@ -117,13 +117,28 @@ kalamata.expose = function (model, _opts_) {
 						// Add headers in res with links to previous and next pages
 						// Add also the number of pages and the number of items per page
 						if (!(page_number === 0)) {
+							const prev_query = Object.assign({}, req.query);
+							// decrement page number.
+							prev_query.page_number = page_number - 1;
+							// set page size explicitly just to be safe.
+							prev_query.page_size_number = page_size_number;
+
 							res.header(
 								'x-prev',
-								`${req.route.path}?page=${page_number - 1}&page_size=${page_size_number}&load=${req.query.load ? req.query.load : ''}`,
+								`${req.route.path}?${Qs.stringify(prev_query)}`,
 							);
 						}
 						if (!(page_number === total_pages)) {
-							res.header('x-next', `${req.route.path}?page=${page_number + 1}&page_size=${page_size_number}&load=${req.query.load ? req.query.load : ''}`);
+							const next_query = Object.assign({}, req.query);
+							// increment page number.
+							next_query.page_number = page_number + 1;
+							// set page size explicitly just to be safe.
+							next_query.page_size_number = page_size_number;
+
+							res.header(
+								'x-next',
+								`${req.route.path}?${Qs.stringify(next_query)}`,
+							);
 						}
 						res.header('x-total-pages', total_pages);
 						res.header('x-total-items', total_items);
