@@ -100,11 +100,11 @@ kalamata.expose = function (model, _opts_) {
 				}
 
 				
-				if(whereIn) {
+				if (whereIn) {
 					// whereIn example { type: [STOREFRONT, PROFESSIONAL] }. Need to extract the keys
-					const keys = Object.keys(whereIn)[0]
+					const keys = Object.keys(whereIn)
 
-					mod.mod.query(qb => keys.forEach(key => {
+					mod = mod.query(qb => keys.forEach(key => {
 						qb.whereIn(key, whereIn[key])
 					}))
 				}
