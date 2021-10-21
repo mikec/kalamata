@@ -89,6 +89,25 @@ kalamata.expose = function (model, _opts_) {
 				if (where) {
 					mod = mod.where(where);
 				}
+			} else if (req.query.whereIn) {
+				let whereIn;
+
+				// the query string must be formatted as json.
+				try {
+					whereIn = parseJSON(req.query.whereIn);
+				} catch (err) {
+					throw new Error('Could not parse JSON: ' + req.query.whereIn);
+				}
+
+				
+				if(whereIn) {
+					// whereIn example { type: [STOREFRONT, PROFESSIONAL] }. Need to extract the keys
+					const keys = Object.keys(whereIn)[0]
+
+					mod.mod.query(qb => keys.forEach(key => {
+						qb.whereIn(key, whereIn[key])
+					}))
+				}
 			}
 
 			return Promise.resolve().then(() => {
